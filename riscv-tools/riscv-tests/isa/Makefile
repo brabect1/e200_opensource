@@ -25,6 +25,7 @@ include $(src_dir)/rv32mi/Makefrag
 #include $(src_dir)/rv32imc_0/Makefrag
 #include $(src_dir)/rv32imc_1/Makefrag
 #include $(src_dir)/rv32imc_2/Makefrag
+include $(src_dir)/soc/Makefrag
 
 default: all
 
@@ -35,8 +36,10 @@ default: all
 RISCV_PREFIX ?= ${PWD}/../../prebuilt_tools/prefix/bin/riscv-none-embed-
 RISCV_GCC ?= $(RISCV_PREFIX)gcc
 RISCV_GCC_OPTS ?= -static -mcmodel=medany -fvisibility=hidden -nostdlib -nostartfiles
-RISCV_OBJDUMP ?= $(RISCV_PREFIX)objdump --disassemble-all
+RISCV_OBJDUMP ?= $(RISCV_PREFIX)objdump
+RISCV_OBJDUMP_OPTS ?= --disassemble-all
 RISCV_OBJCOPY ?= $(RISCV_PREFIX)objcopy -O verilog 
+RISCV_OBJCOPY_OPTS ?= -O verilog 
 RISCV_SIM ?= ${PWD}/../../prebuilt_tools/prefix/bin/spike
 
 vpath %.S $(src_dir)
@@ -48,8 +51,8 @@ vpath %.S $(src_dir)
 	$(RISCV_SIM)  --isa=rv32imafdc -l $< >& $<.spike.rpt
 
 %.dump: % 
-	$(RISCV_OBJDUMP) $< > $@
-	$(RISCV_OBJCOPY) $<   $<.verilog
+	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_OPTS) $< > $@
+	$(RISCV_OBJCOPY) $(RISCV_OBJCOPY_OPTS) $<   $<.verilog
 	sed -i 's/@800/@000/g' $<.verilog
 	sed -i 's/@00002FB8/@00002000/g' $<.verilog
 
@@ -86,6 +89,7 @@ $(eval $(call compile_template,rv32mi,-march=rv32imafdc -mabi=ilp32))
 #$(eval $(call compile_template,rv32imc_0,-march=rv32imafdc -mabi=ilp32))
 #$(eval $(call compile_template,rv32imc_1,-march=rv32imafdc -mabi=ilp32))
 #$(eval $(call compile_template,rv32imc_2,-march=rv32imafdc -mabi=ilp32))
+$(eval $(call compile_template,soc,-march=rv32imafdc -mabi=ilp32))
 ifeq ($(XLEN),64)
 $(eval $(call compile_template,rv64ui,-march=rv64imafdc -mabi=lp64))
 $(eval $(call compile_template,rv64uc,-march=rv64imafdc -mabi=lp64))

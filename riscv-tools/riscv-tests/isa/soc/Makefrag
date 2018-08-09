@@ -1,0 +1,10 @@
+#=======================================================================
+# Makefrag for SoC tests
+#-----------------------------------------------------------------------
+
+soc_sc_tests = \
+	qspi-regs \
+
+soc_p_tests = $(addprefix soc-p-, $(soc_sc_tests))
+
+#spike32_tests += $(rv32mi_p_tests)

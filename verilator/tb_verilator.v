@@ -318,6 +318,15 @@ module tb_verilator(
   wire jtag_DRV_TDO = 1'b0;
 
 
+wire sck;
+wire spi_cs_n;
+wire [3:0] spi_dq;
+wire [3:0] spi_dut_dq_o;
+wire [3:0] spi_dut_dq_oe;
+wire [3:0] spi_dev_dq_o;
+wire [3:0] spi_dev_dq_t;
+
+
 e203_soc_top u_e203_soc_top(
    
    .hfextclk(clk),
@@ -524,32 +533,32 @@ e203_soc_top u_e203_soc_top(
    .io_pads_gpio_31_o_pue (),
    .io_pads_gpio_31_o_ds (),
 
-   .io_pads_qspi_sck_o_oval (),
-   .io_pads_qspi_dq_0_i_ival (1'b1),
-   .io_pads_qspi_dq_0_o_oval (),
-   .io_pads_qspi_dq_0_o_oe (),
+   .io_pads_qspi_sck_o_oval (sck),
+   .io_pads_qspi_dq_0_i_ival (spi_dq[0]),
+   .io_pads_qspi_dq_0_o_oval (spi_dut_dq_o[0]),
+   .io_pads_qspi_dq_0_o_oe (spi_dut_dq_oe[0]),
    .io_pads_qspi_dq_0_o_ie (),
    .io_pads_qspi_dq_0_o_pue (),
    .io_pads_qspi_dq_0_o_ds (),
-   .io_pads_qspi_dq_1_i_ival (1'b1),
-   .io_pads_qspi_dq_1_o_oval (),
-   .io_pads_qspi_dq_1_o_oe (),
+   .io_pads_qspi_dq_1_i_ival (spi_dq[1]),
+   .io_pads_qspi_dq_1_o_oval (spi_dut_dq_o[1]),
+   .io_pads_qspi_dq_1_o_oe (spi_dut_dq_oe[1]),
    .io_pads_qspi_dq_1_o_ie (),
    .io_pads_qspi_dq_1_o_pue (),
    .io_pads_qspi_dq_1_o_ds (),
-   .io_pads_qspi_dq_2_i_ival (1'b1),
-   .io_pads_qspi_dq_2_o_oval (),
-   .io_pads_qspi_dq_2_o_oe (),
+   .io_pads_qspi_dq_2_i_ival (spi_dq[2]),
+   .io_pads_qspi_dq_2_o_oval (spi_dut_dq_o[2]),
+   .io_pads_qspi_dq_2_o_oe (spi_dut_dq_oe[2]),
    .io_pads_qspi_dq_2_o_ie (),
    .io_pads_qspi_dq_2_o_pue (),
    .io_pads_qspi_dq_2_o_ds (),
-   .io_pads_qspi_dq_3_i_ival (1'b1),
-   .io_pads_qspi_dq_3_o_oval (),
-   .io_pads_qspi_dq_3_o_oe (),
+   .io_pads_qspi_dq_3_i_ival (spi_dq[3]),
+   .io_pads_qspi_dq_3_o_oval (spi_dut_dq_o[3]),
+   .io_pads_qspi_dq_3_o_oe (spi_dut_dq_oe[3]),
    .io_pads_qspi_dq_3_o_ie (),
    .io_pads_qspi_dq_3_o_pue (),
    .io_pads_qspi_dq_3_o_ds (),
-   .io_pads_qspi_cs_0_o_oval (),
+   .io_pads_qspi_cs_0_o_oval (spi_cs_n),
    .io_pads_aon_erst_n_i_ival (rst_n),//This is the real reset, active low
    .io_pads_aon_pmu_dwakeup_n_i_ival (1'b1),
 
@@ -561,6 +570,19 @@ e203_soc_top u_e203_soc_top(
     .io_pads_dbgmode1_n_i_ival       (1'b1),
     .io_pads_dbgmode2_n_i_ival       (1'b1) 
 );
- 
+
+for (genvar i=0; i<4; i++) begin
+    assign spi_dq[i] = spi_dut_dq_oe[i] ? spi_dut_dq_o[i] : 1'bz;
+    assign spi_dq[i] = spi_dev_dq_t[i] ? 1'bz : spi_dev_dq_o[i];
+end
+
+spi_model u_spi_dev(
+    .sck(sck),
+    .rst_n(rst_n),
+    .cs_n(spi_cs_n),
+    .dq_i(spi_dq),
+    .dq_o(spi_dev_dq_o),
+    .dq_t(spi_dev_dq_t)
+);
 
 endmodule

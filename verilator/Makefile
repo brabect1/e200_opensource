@@ -15,7 +15,7 @@
 SHELL=bash
 
 vdir = ../rtl/e203
-vsrc = tb_verilator.v $(foreach d,$(wildcard $(vdir)/*),$(wildcard $(d)/*.*v*))
+vsrc = tb_verilator.v spi_model.sv $(foreach d,$(wildcard $(vdir)/*),$(wildcard $(d)/*.*v*))
 csrc = sim.cpp
 cflags =
 objdir = obj

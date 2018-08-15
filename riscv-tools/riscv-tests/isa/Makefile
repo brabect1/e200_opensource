@@ -64,7 +64,7 @@ vpath %.S $(src_dir)
 
 define compile_template
 
-$$($(1)_p_tests): $(1)-p-%: $(1)/%.S
+$$($(1)_p_tests): $(1)-p-%: $(1)/%.S $(3)
 	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(src_dir)/../env/p -I$(src_dir)/macros/scalar -T$(src_dir)/../env/p/link.ld $$< -o $$@
 $(1)_tests += $$($(1)_p_tests)
 
@@ -89,7 +89,7 @@ $(eval $(call compile_template,rv32mi,-march=rv32imafdc -mabi=ilp32))
 #$(eval $(call compile_template,rv32imc_0,-march=rv32imafdc -mabi=ilp32))
 #$(eval $(call compile_template,rv32imc_1,-march=rv32imafdc -mabi=ilp32))
 #$(eval $(call compile_template,rv32imc_2,-march=rv32imafdc -mabi=ilp32))
-$(eval $(call compile_template,soc,-march=rv32imafdc -mabi=ilp32))
+$(eval $(call compile_template,soc,-march=rv32imafdc -mabi=ilp32 -I$(src_dir)/soc,$(src_dir)/soc/soc.h))
 ifeq ($(XLEN),64)
 $(eval $(call compile_template,rv64ui,-march=rv64imafdc -mabi=lp64))
 $(eval $(call compile_template,rv64uc,-march=rv64imafdc -mabi=lp64))

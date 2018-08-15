@@ -326,6 +326,7 @@ wire [3:0] spi_dut_dq_oe;
 wire [3:0] spi_dev_dq_o;
 wire [3:0] spi_dev_dq_t;
 
+wire uart_txd;
 
 e203_soc_top u_e203_soc_top(
    
@@ -436,14 +437,14 @@ e203_soc_top u_e203_soc_top(
    .io_pads_gpio_15_o_ie (),
    .io_pads_gpio_15_o_pue (),
    .io_pads_gpio_15_o_ds (),
-   .io_pads_gpio_16_i_ival (1'b1),
+   .io_pads_gpio_16_i_ival (uart_txd),
    .io_pads_gpio_16_o_oval (),
    .io_pads_gpio_16_o_oe (),
    .io_pads_gpio_16_o_ie (),
    .io_pads_gpio_16_o_pue (),
    .io_pads_gpio_16_o_ds (),
    .io_pads_gpio_17_i_ival (1'b1),
-   .io_pads_gpio_17_o_oval (),
+   .io_pads_gpio_17_o_oval (uart_txd),
    .io_pads_gpio_17_o_oe (),
    .io_pads_gpio_17_o_ie (),
    .io_pads_gpio_17_o_pue (),

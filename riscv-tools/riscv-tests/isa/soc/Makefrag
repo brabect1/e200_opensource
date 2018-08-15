@@ -4,6 +4,7 @@
 
 soc_sc_tests = \
 	qspi-regs \
+	uart-regs \
 
 soc_p_tests = $(addprefix soc-p-, $(soc_sc_tests))
 

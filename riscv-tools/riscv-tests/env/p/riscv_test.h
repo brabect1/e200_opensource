@@ -276,53 +276,53 @@ post_mtvec:  la t0, stvec_handler;                                           \
         csrw 0xbfc, a0;                                                     \
         fence.i;                                                     \
         /*Bob added code to enable the interrupt enables: end*/              \
-        /*Bob added code to enable the PLL: begin{*/              \
-        li t0, 2560; /*Wait loops before switch to PLL*/  \
-waitloop1: addi t0, t0, -1;                                                     \
-        bnez t0, waitloop1;                                                     \
-        li t2, 0x10008008;/*Set the pll bypass to 0*/                                                     \
-        lw t0, 0(t2);                                                     \
-        li t1, (1<<18);                                                     \
-        xor t1, t1, -1;                                                     \
-        and t0, t0, t1;                                                     \
-        sw t0, 0(t2);                                                     \
-        li t0, 1024; /*Wait loops before change PLL param */  \
-waitloop2: addi t0, t0, -1;                                                     \
-        lw t3, 0(t2);/*Intentially add a strange inscturciton here*/                                                     \
-        bnez t0, waitloop2;                                                     \
-        lw t0, 0(t2);/*Set pll bypass to 1*/                                                     \
-        li t1, (1<<18);                                                     \
-        or t0, t0, t1;                                                     \
-        sw t0, 0(t2);                                                     \
-        lw t0, 0(t2);/*Change N from 2 to 3*/                                                     \
-        li t1, 1;                                                     \
-        or t0, t0, t1;                                                     \
-        sw t0, 0(t2);                                                     \
-        lw t0, 0(t2);/*Change M from 32 to 33*/                                                     \
-        li t1, (1<<5);                                                     \
-        or t0, t0, t1;                                                     \
-        sw t0, 0(t2);                                                     \
-        li t0, 2560; /*Wait loops before switch to PLL*/  \
-waitloop3: addi t0, t0, -1;                                                     \
-        bnez t0, waitloop3;                                                     \
-        lw t0, 0(t2);                                                     \
-        li t1, (1<<18);                                                     \
-        xor t1, t1, -1;                                                     \
-        and t0, t0, t1;                                                     \
-        sw t0, 0(t2);                                                     \
-        li t0, 256; /*Wait loops before div the PLL*/  \
-waitloop4: addi t0, t0, -1;                                                     \
-        bnez t0, waitloop4;                                                     \
-        li t2, 0x1000800C;/*Set the plloutdiv div1 to 0, and div ratio is 2*/                                                     \
-        lw t0, 0(t2);                                                     \
-        li t1, (1<<8);                                                     \
-        xor t1, t1, -1;                                                     \
-        and t0, t0, t1;                                                     \
-        li t1, 0x2;                                                     \
-        or t0, t0, t1;                                                     \
-        sw t0, 0(t2);                                                     \
-        li t0, 1024; /*Wait loops before change PLL param */  \
-        /*Bob added code to enable the PLL: end}*/              \
+        /*Bob added code to enable the PLL: begin{*/                    \
+/*        li t0, 2560; /*Wait loops before switch to PLL*/                  \
+/*waitloop1: addi t0, t0, -1;                                            */ \
+/*        bnez t0, waitloop1;                                            */ \
+/*        li t2, 0x10008008;/*Set the pll bypass to 0*/                     \
+/*        lw t0, 0(t2);                                                  */ \
+/*        li t1, (1<<18);                                                */ \
+/*        xor t1, t1, -1;                                                */ \
+/*        and t0, t0, t1;                                                */ \
+/*        sw t0, 0(t2);                                                  */ \
+/*        li t0, 1024; /*Wait loops before change PLL param */              \
+/*waitloop2: addi t0, t0, -1;                                            */ \
+/*        lw t3, 0(t2);/*Intentially add a strange inscturciton here*/      \
+/*        bnez t0, waitloop2;                                            */ \
+/*        lw t0, 0(t2);/*Set pll bypass to 1*/                              \
+/*        li t1, (1<<18);                                                */ \
+/*        or t0, t0, t1;                                                 */ \
+/*        sw t0, 0(t2);                                                  */ \
+/*        lw t0, 0(t2);/*Change N from 2 to 3*/                             \
+/*        li t1, 1;                                                      */ \
+/*        or t0, t0, t1;                                                 */ \
+/*        sw t0, 0(t2);                                                  */ \
+/*        lw t0, 0(t2);/*Change M from 32 to 33*/                           \
+/*        li t1, (1<<5);                                                 */ \
+/*        or t0, t0, t1;                                                 */ \
+/*        sw t0, 0(t2);                                                  */ \
+/*        li t0, 2560; /*Wait loops before switch to PLL*/                  \
+/*waitloop3: addi t0, t0, -1;                                            */ \
+/*        bnez t0, waitloop3;                                            */ \
+/*        lw t0, 0(t2);                                                  */ \
+/*        li t1, (1<<18);                                                */ \
+/*        xor t1, t1, -1;                                                */ \
+/*        and t0, t0, t1;                                                */ \
+/*        sw t0, 0(t2);                                                  */ \
+/*        li t0, 256; /*Wait loops before div the PLL*/                     \
+/*waitloop4: addi t0, t0, -1;                                            */ \
+/*        bnez t0, waitloop4;                                            */ \
+/*        li t2, 0x1000800C;/*Set the plloutdiv div1 to 0, and div ratio is 2*/ \
+/*        lw t0, 0(t2);                                                  */ \
+/*        li t1, (1<<8);                                                 */ \
+/*        xor t1, t1, -1;                                                */ \
+/*        and t0, t0, t1;                                                */ \
+/*        li t1, 0x2;                                                    */ \
+/*        or t0, t0, t1;                                                 */ \
+/*        sw t0, 0(t2);                                                  */ \
+/*        li t0, 1024; /*Wait loops before change PLL param */              \
+        /*Bob added code to enable the PLL: end}*/                      \
         init;                                                           \
         EXTRA_INIT;                                                     \
         EXTRA_INIT_TIMER;                                               \

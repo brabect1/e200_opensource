@@ -18,6 +18,8 @@
 
    2018, Aug, Tomas Brabec
    - Code cleanup (unused nets, transitive assignments, constant assignments).
+   - Replaced receiver module as the original one did not work with loopback
+     to the transmitter module.
 
  */                                                                      
                                                                          
@@ -96,23 +98,23 @@ module sirv_uart(
   wire  T_968;
   wire [9:0] T_972;
   wire  T_1065;
-  wire  T_1074;
-  wire  T_1083;
-  wire  T_1092;
-  wire  T_1101;
-  wire  T_1110;
-  wire  T_1119;
+//  wire  T_1074;
+//  wire  T_1083;
+//  wire  T_1092;
+//  wire  T_1101;
+//  wire  T_1110;
+//  wire  T_1119;
   wire [31:0] T_1226;
   wire  T_1376;
   wire  T_1416;
   wire  T_1696;
-  wire  T_1891;
-  wire  T_1897;
-  wire  T_1903;
-  wire  T_1909;
-  wire  T_1914;
-  wire  T_1919;
-  wire  T_1924;
+//  wire  T_1891;
+//  wire  T_1897;
+//  wire  T_1903;
+//  wire  T_1909;
+//  wire  T_1914;
+//  wire  T_1919;
+//  wire  T_1924;
   wire [2:0] T_2149;
   wire  T_2164;
   wire  T_2167;
@@ -123,7 +125,6 @@ module sirv_uart(
   wire  T_2251;
   wire  T_2271;
   wire  T_2291;
-  wire  T_2453;
   sirv_uarttx u_txm (
     .clock(clock),
     .reset(reset),
@@ -146,14 +147,28 @@ module sirv_uart(
     .io_deq_bits(txq_io_deq_bits),
     .io_count(txq_io_count)
   );
-  sirv_uartrx u_rxm (
+//  sirv_uartrx u_rxm (
+//    .clock(clock),
+//    .reset(reset),
+//    .io_en(rxen),
+//    .io_in(io_port_rxd),
+//    .io_out_valid(rxm_io_out_valid),
+//    .io_out_bits(rxm_io_out_bits),
+//    .io_div(div)
+//  );
+  uart_rx u_rxm(
     .clock(clock),
     .reset(reset),
     .io_en(rxen),
     .io_in(io_port_rxd),
     .io_out_valid(rxm_io_out_valid),
     .io_out_bits(rxm_io_out_bits),
-    .io_div(div)
+    .io_div(div),
+    .LCR({5'd0,nstop,2'b11}),
+    .rx_idle(),
+    .parity_error(),
+    .framing_error(),
+    .break_error()
   );
   sirv_queue_1 u_rxq (
     .clock(clock),
@@ -184,97 +199,102 @@ module sirv_uart(
   assign io_in_0_d_bits_source = T_972[7:3];
   assign io_in_0_d_bits_sink = 1'h0;
   assign io_in_0_d_bits_addr_lo = T_972[9:8];
-  assign io_in_0_d_bits_data = ((3'h7 == T_2149 ? 1'h1 : (3'h6 == T_2149 ? T_1092 : (3'h5 == T_2149 ? T_1074 : (3'h4 == T_2149 ? T_1119 : (3'h3 == T_2149 ? T_1110 : (3'h2 == T_2149 ? T_1101 : (3'h1 == T_2149 ? T_1083 : T_1065))))))) ? (3'h7 == T_2149 ? 32'h0 : (3'h6 == T_2149 ? ({{16'd0}, div}) : (3'h5 == T_2149 ? ({{30'd0}, (({{1'd0}, T_916}) | (({{1'd0}, T_917}) << 1))}) : (3'h4 == T_2149 ? ({{30'd0}, (({{1'd0}, ie_txwm}) | (({{1'd0}, ie_rxwm}) << 1))}) : (3'h3 == T_2149 ? ({{12'd0}, (({{19'd0}, rxen}) | (({{16'd0}, rxwm}) << 16))}) : (3'h2 == T_2149 ? ({{12'd0}, (({{18'd0}, (({{1'd0}, txen}) | (({{1'd0}, nstop}) << 1))}) | (({{16'd0}, txwm}) << 16))}) : (3'h1 == T_2149 ? (({{1'd0}, ({{23'd0}, rxq_io_deq_bits})}) | (({{31'd0}, (rxq_io_deq_valid == 1'h0)}) << 31)) : (({{31'd0}, (txq_io_enq_ready == 1'h0)}) << 31)))))))) : 32'h0);
+//  assign io_in_0_d_bits_data = ((3'h7 == T_2149 ? 1'h1 : (3'h6 == T_2149 ? T_1092 : (3'h5 == T_2149 ? T_1074 : (3'h4 == T_2149 ? T_1119 : (3'h3 == T_2149 ? T_1110 : (3'h2 == T_2149 ? T_1101 : (3'h1 == T_2149 ? T_1083 : T_1065))))))) ? (3'h7 == T_2149 ? 32'h0 : (3'h6 == T_2149 ? ({{16'd0}, div}) : (3'h5 == T_2149 ? ({{30'd0}, (({{1'd0}, T_916}) | (({{1'd0}, T_917}) << 1))}) : (3'h4 == T_2149 ? ({{30'd0}, (({{1'd0}, ie_txwm}) | (({{1'd0}, ie_rxwm}) << 1))}) : (3'h3 == T_2149 ? ({{12'd0}, (({{19'd0}, rxen}) | (({{16'd0}, rxwm}) << 16))}) : (3'h2 == T_2149 ? ({{12'd0}, (({{18'd0}, (({{1'd0}, txen}) | (({{1'd0}, nstop}) << 1))}) | (({{16'd0}, txwm}) << 16))}) : (3'h1 == T_2149 ? (({{1'd0}, ({{23'd0}, rxq_io_deq_bits})}) | (({{31'd0}, (rxq_io_deq_valid == 1'h0)}) << 31)) : (({{31'd0}, (txq_io_enq_ready == 1'h0)}) << 31)))))))) : 32'h0);
+  assign io_in_0_d_bits_data = T_1065 ? (3'h7 == T_2149 ? 32'h0 : (3'h6 == T_2149 ? ({16'd0, div}) : (3'h5 == T_2149 ? {30'd0,T_917,T_916} : (3'h4 == T_2149 ? {30'd0,ie_rxwm,ie_txwm} : (3'h3 == T_2149 ? {16'd0,rxwm,15'd0,rxen} : (3'h2 == T_2149 ? {12'd0,txwm,14'd0,nstop,txen} : (3'h1 == T_2149 ? {~rxq_io_deq_valid,23'd0,rxq_io_deq_bits} : {~txq_io_enq_ready,31'd0} ))))))) : 32'h0;
   assign io_in_0_d_bits_error = 1'h0;
   assign io_in_0_e_ready = 1'h1;
   assign io_port_txd = txm_io_out;
   assign T_916 = txq_io_count < txwm;
   assign T_917 = rxq_io_count > rxwm;
   assign T_968 = io_in_0_a_bits_opcode == 3'h4;
-  assign T_972 = {({io_in_0_a_bits_address[1:0],io_in_0_a_bits_source}),io_in_0_a_bits_size};
-  assign T_1065 = (io_in_0_a_bits_address[11:2] & 10'h3f8) == 10'h0;
-  assign T_1074 = ((io_in_0_a_bits_address[11:2] ^ 10'h5) & 10'h3f8) == 10'h0;
-  assign T_1083 = ((io_in_0_a_bits_address[11:2] ^ 10'h1) & 10'h3f8) == 10'h0;
-  assign T_1092 = ((io_in_0_a_bits_address[11:2] ^ 10'h6) & 10'h3f8) == 10'h0;
-  assign T_1101 = ((io_in_0_a_bits_address[11:2] ^ 10'h2) & 10'h3f8) == 10'h0;
-  assign T_1110 = ((io_in_0_a_bits_address[11:2] ^ 10'h3) & 10'h3f8) == 10'h0;
-  assign T_1119 = ((io_in_0_a_bits_address[11:2] ^ 10'h4) & 10'h3f8) == 10'h0;
-  assign T_1226 = {({(io_in_0_a_bits_mask[3] ? 8'hff : 8'h0),(io_in_0_a_bits_mask[2] ? 8'hff : 8'h0)}),({(io_in_0_a_bits_mask[1] ? 8'hff : 8'h0),(io_in_0_a_bits_mask[0] ? 8'hff : 8'h0)})};
-  assign T_1376 = (~ T_1226[0]) == 1'h0;
-  assign T_1416 = (~ T_1226[1]) == 1'h0;
-  assign T_1696 = (~ T_1226[19:16]) == 4'h0;
-  assign T_1891 = T_1065 == 1'h0;
-  assign T_1897 = T_1083 == 1'h0;
-  assign T_1903 = T_1101 == 1'h0;
-  assign T_1909 = T_1110 == 1'h0;
-  assign T_1914 = T_1119 == 1'h0;
-  assign T_1919 = T_1074 == 1'h0;
-  assign T_1924 = T_1092 == 1'h0;
-  assign T_2149 = {({io_in_0_a_bits_address[4],io_in_0_a_bits_address[3]}),io_in_0_a_bits_address[2]};
-  assign T_2164 = T_968 ? (3'h7 == T_2149 ? 1'h1 : (3'h6 == T_2149 ? (T_1924 | 1'h1) : (3'h5 == T_2149 ? (T_1919 | (1'h1 & 1'h1)) : (3'h4 == T_2149 ? (T_1914 | (1'h1 & 1'h1)) : (3'h3 == T_2149 ? (T_1909 | (1'h1 & 1'h1)) : (3'h2 == T_2149 ? (T_1903 | ((1'h1 & 1'h1) & 1'h1)) : (3'h1 == T_2149 ? (T_1897 | ((1'h1 & 1'h1) & 1'h1)) : (T_1891 | ((1'h1 & 1'h1) & 1'h1))))))))) : (3'h7 == T_2149 ? 1'h1 : (3'h6 == T_2149 ? (T_1924 | 1'h1) : (3'h5 == T_2149 ? (T_1919 | (1'h1 & 1'h1)) : (3'h4 == T_2149 ? (T_1914 | (1'h1 & 1'h1)) : (3'h3 == T_2149 ? (T_1909 | (1'h1 & 1'h1)) : (3'h2 == T_2149 ? (T_1903 | ((1'h1 & 1'h1) & 1'h1)) : (3'h1 == T_2149 ? (T_1897 | ((1'h1 & 1'h1) & 1'h1)) : (T_1891 | ((1'h1 & 1'h1) & 1'h1)))))))));
-  assign T_2167 = T_968 ? (3'h7 == T_2149 ? 1'h1 : (3'h6 == T_2149 ? (T_1924 | 1'h1) : (3'h5 == T_2149 ? (T_1919 | (1'h1 & 1'h1)) : (3'h4 == T_2149 ? (T_1914 | (1'h1 & 1'h1)) : (3'h3 == T_2149 ? (T_1909 | (1'h1 & 1'h1)) : (3'h2 == T_2149 ? (T_1903 | ((1'h1 & 1'h1) & 1'h1)) : (3'h1 == T_2149 ? (T_1897 | ((1'h1 & 1'h1) & 1'h1)) : (T_1891 | ((1'h1 & 1'h1) & 1'h1))))))))) : (3'h7 == T_2149 ? 1'h1 : (3'h6 == T_2149 ? (T_1924 | 1'h1) : (3'h5 == T_2149 ? (T_1919 | (1'h1 & 1'h1)) : (3'h4 == T_2149 ? (T_1914 | (1'h1 & 1'h1)) : (3'h3 == T_2149 ? (T_1909 | (1'h1 & 1'h1)) : (3'h2 == T_2149 ? (T_1903 | ((1'h1 & 1'h1) & 1'h1)) : (3'h1 == T_2149 ? (T_1897 | ((1'h1 & 1'h1) & 1'h1)) : (T_1891 | ((1'h1 & 1'h1) & 1'h1)))))))));
+  assign T_972 = {io_in_0_a_bits_address[1:0],io_in_0_a_bits_source,io_in_0_a_bits_size};
+//  assign T_1065 = (io_in_0_a_bits_address[11:2] & 10'h3f8) == 10'h0;
+  assign T_1065 = io_in_0_a_bits_address[11:5] == 10'h0;
+//  assign T_1074 = ((io_in_0_a_bits_address[11:2] ^ 10'h5) & 10'h3f8) == 10'h0;
+//  assign T_1083 = ((io_in_0_a_bits_address[11:2] ^ 10'h1) & 10'h3f8) == 10'h0;
+//  assign T_1092 = ((io_in_0_a_bits_address[11:2] ^ 10'h6) & 10'h3f8) == 10'h0;
+//  assign T_1101 = ((io_in_0_a_bits_address[11:2] ^ 10'h2) & 10'h3f8) == 10'h0;
+//  assign T_1110 = ((io_in_0_a_bits_address[11:2] ^ 10'h3) & 10'h3f8) == 10'h0;
+//  assign T_1119 = ((io_in_0_a_bits_address[11:2] ^ 10'h4) & 10'h3f8) == 10'h0;
+//  assign T_1226 = {({(io_in_0_a_bits_mask[3] ? 8'hff : 8'h0),(io_in_0_a_bits_mask[2] ? 8'hff : 8'h0)}),({(io_in_0_a_bits_mask[1] ? 8'hff : 8'h0),(io_in_0_a_bits_mask[0] ? 8'hff : 8'h0)})};
+  assign T_1226 = { {8{io_in_0_a_bits_mask[3]}}, {8{io_in_0_a_bits_mask[2]}}, {8{io_in_0_a_bits_mask[1]}}, {8{io_in_0_a_bits_mask[0]}} };
+  assign T_1376 = T_1226[0];
+  assign T_1416 = T_1226[1];
+  assign T_1696 = T_1226[19:16] == 4'hf;
+//  assign T_1891 = ~T_1065;
+//  assign T_1897 = ~T_1083;
+//  assign T_1903 = ~T_1101;
+//  assign T_1909 = ~T_1110;
+//  assign T_1914 = ~T_1119;
+//  assign T_1919 = ~T_1074;
+//  assign T_1924 = ~T_1092;
+  assign T_2149 = io_in_0_a_bits_address[4:2];
+//  assign T_2164 = T_968 ? (3'h7 == T_2149 ? 1'h1 : (3'h6 == T_2149 ? (T_1924 | 1'h1) : (3'h5 == T_2149 ? (T_1919 | (1'h1 & 1'h1)) : (3'h4 == T_2149 ? (T_1914 | (1'h1 & 1'h1)) : (3'h3 == T_2149 ? (T_1909 | (1'h1 & 1'h1)) : (3'h2 == T_2149 ? (T_1903 | ((1'h1 & 1'h1) & 1'h1)) : (3'h1 == T_2149 ? (T_1897 | ((1'h1 & 1'h1) & 1'h1)) : (T_1891 | ((1'h1 & 1'h1) & 1'h1))))))))) : (3'h7 == T_2149 ? 1'h1 : (3'h6 == T_2149 ? (T_1924 | 1'h1) : (3'h5 == T_2149 ? (T_1919 | (1'h1 & 1'h1)) : (3'h4 == T_2149 ? (T_1914 | (1'h1 & 1'h1)) : (3'h3 == T_2149 ? (T_1909 | (1'h1 & 1'h1)) : (3'h2 == T_2149 ? (T_1903 | ((1'h1 & 1'h1) & 1'h1)) : (3'h1 == T_2149 ? (T_1897 | ((1'h1 & 1'h1) & 1'h1)) : (T_1891 | ((1'h1 & 1'h1) & 1'h1)))))))));
+  assign T_2164 = 1'b1;
+//  assign T_2167 = T_968 ? (3'h7 == T_2149 ? 1'h1 : (3'h6 == T_2149 ? (T_1924 | 1'h1) : (3'h5 == T_2149 ? (T_1919 | (1'h1 & 1'h1)) : (3'h4 == T_2149 ? (T_1914 | (1'h1 & 1'h1)) : (3'h3 == T_2149 ? (T_1909 | (1'h1 & 1'h1)) : (3'h2 == T_2149 ? (T_1903 | ((1'h1 & 1'h1) & 1'h1)) : (3'h1 == T_2149 ? (T_1897 | ((1'h1 & 1'h1) & 1'h1)) : (T_1891 | ((1'h1 & 1'h1) & 1'h1))))))))) : (3'h7 == T_2149 ? 1'h1 : (3'h6 == T_2149 ? (T_1924 | 1'h1) : (3'h5 == T_2149 ? (T_1919 | (1'h1 & 1'h1)) : (3'h4 == T_2149 ? (T_1914 | (1'h1 & 1'h1)) : (3'h3 == T_2149 ? (T_1909 | (1'h1 & 1'h1)) : (3'h2 == T_2149 ? (T_1903 | ((1'h1 & 1'h1) & 1'h1)) : (3'h1 == T_2149 ? (T_1897 | ((1'h1 & 1'h1) & 1'h1)) : (T_1891 | ((1'h1 & 1'h1) & 1'h1)))))))));
+  assign T_2167 = 1'b1;
   assign T_2169 = io_in_0_a_valid & T_2164;
-  assign T_2181 = (8'h1 << T_2149) & ({({({1'h1,T_1092}),({T_1074,T_1119})}),({({T_1110,T_1101}),({T_1083,T_1065})})});
+//  assign T_2181 = (8'h1 << T_2149) & ({({({1'h1,T_1092}),({T_1074,T_1119})}),({({T_1110,T_1101}),({T_1083,T_1065})})});
+  assign T_2181 = (8'h1 << T_2149);
   assign T_2202 = T_2169 & io_in_0_d_ready;
-  assign T_2209 = T_2202 & (T_968 == 1'h0);
+  assign T_2209 = T_2202 & ~T_968;
   assign T_2251 = T_2209 & T_2181[2];
   assign T_2271 = T_2209 & T_2181[3];
   assign T_2291 = T_2209 & T_2181[4];
-  assign T_2453 = T_2251 & 1'h1;
 
   always @(posedge clock or posedge reset)
     if (reset) begin
       div <= 16'h21e;
-    end else if (((T_2209 & T_2181[6]) & ((~ T_1226[15:0]) == 16'h0))) begin
+    end else if (T_2209 & T_2181[6] & ((~T_1226[15:0]) == 16'h0)) begin
       div <= io_in_0_a_bits_data[15:0];
     end
 
   always @(posedge clock or posedge reset)
     if (reset) begin
       txen <= 1'h0;
-    end else if (((T_2453 & 1'h1) & T_1376)) begin
+    end else if (T_2251 & T_1376) begin
       txen <= io_in_0_a_bits_data[0];
     end
 
   always @(posedge clock or posedge reset)
     if (reset) begin
       rxen <= 1'h0;
-    end else if (((T_2271 & 1'h1) & T_1376)) begin
+    end else if (T_2271 & T_1376) begin
       rxen <= io_in_0_a_bits_data[0];
     end
 
   always @(posedge clock or posedge reset)
     if (reset) begin
       txwm <= 4'h0;
-    end else if ((((T_2251 & 1'h1) & 1'h1) & T_1696)) begin
+    end else if (T_2251 & T_1696) begin
       txwm <= io_in_0_a_bits_data[19:16];
     end
 
   always @(posedge clock or posedge reset)
     if (reset) begin
       rxwm <= 4'h0;
-    end else if (((T_2271 & 1'h1) & T_1696)) begin
+    end else if (T_2271 & T_1696) begin
       rxwm <= io_in_0_a_bits_data[19:16];
     end
 
   always @(posedge clock or posedge reset)
     if (reset) begin
       nstop <= 1'h0;
-    end else if (((T_2453 & 1'h1) & T_1416)) begin
+    end else if (T_2251 & T_1416) begin
       nstop <= io_in_0_a_bits_data[1];
     end
 
   always @(posedge clock or posedge reset)
     if (reset) begin
       ie_rxwm <= 1'h0;
-    end else if (((T_2291 & 1'h1) & T_1416)) begin
+    end else if (T_2291 & T_1416) begin
       ie_rxwm <= io_in_0_a_bits_data[1];
     end
 
   always @(posedge clock or posedge reset)
     if (reset) begin
       ie_txwm <= 1'h0;
-    end else if (((T_2291 & 1'h1) & T_1376)) begin
+    end else if (T_2291 & T_1376) begin
       ie_txwm <= io_in_0_a_bits_data[0];
     end
 

@@ -15,6 +15,13 @@ RVTEST_CODE_BEGIN
 # Test the UART0
 # -----------------------------------------------
 
+    # Make sure UART TxD and RxD pass through GPIO interface is
+    # enabled.
+io_map:
+    li t4, GPIO0_BASE
+    li t5, 0x00030000
+    sw t5,GPIO_IOFEN_OFST(t4)
+
 test_reset_value:
     TEST_LD_ADDR       ( 1, lw, UART_TXDATA_RSTV,   UART_TXDATA_OFST,    UART0_BASE )
     TEST_LD_ADDR_IGNORE( 2, lw, UART_RXDATA_RSTV,   UART_RXDATA_OFST,    UART0_BASE, 0xffffff00 )
@@ -61,17 +68,11 @@ test_read_write:
     TEST_RO_ADDR( 162, 0x55555555, UART_TXDATA_RSTV, UART_TXDATA_OFST, UART0_BASE )
     TEST_RO_ADDR( 163, 0x00000000, UART_TXDATA_RSTV, UART_TXDATA_OFST, UART0_BASE )
 
-    # Make sure UART TxD and RxD pass through GPIO interface is
-    # enabled.
-io_map:
-    li t4, GPIO0_BASE
-    li t5, 0x00030000
-    sw t5,GPIO_IOFEN_OFST(t4)
-
     # initialize registers
+    .set divisor,32
 test_init:
     li t4, UART0_BASE
-    li t5, 16
+    li t5, divisor
     sw t5, UART_DIV_OFST(t4)     # min useful divisor is 16
     sw x0, UART_IE_OFST(t4)      # disable interrupts
 
@@ -91,29 +92,29 @@ test_en_xfer:
     li t5, 1
     li t4, UART0_BASE
     sw t5, UART_RXCTRL_OFST(t4)  # enable receiver
-    sw t5, UART_RXCTRL_OFST(t4)  # enable receiver
+    sw t5, UART_TXCTRL_OFST(t4)  # enable transmitter
 
-    # wait loop (8 bytes, div by 16 yields at least 176 clocks, plus some overhead)
-    li t5,250
+    # wait loop (8 bytes, max 11 bauds each, plus some overhead)
+    .set wait_cycs, divisor * 11 * 8 + 100
+    li t5,wait_cycs
 1:  addi t5,t5,-1
     bgez t5,1b
 
-#    # send data bytes
-#    li t5, 0x000000AA
-#    sw t5, UART_TXDATA_OFST(t4)
-#    li t5, 0x00000000
-#    sw t5, UART_TXDATA_OFST(t4)
-#    li t5, 0x00000055
-#    sw t5, UART_TXDATA_OFST(t4)
-#
-#    # Wait loop
-#    li t5, 0x00000064
-#1:  addi t5,t5,-1
-#    bgez t5,1b
-#    
-#
-#    # Dummy ops
-#    li a1, 0xAA55A55A
+    # check Tx FIFO status
+    TEST_LD_ADDR       ( 203, lw, UART_TXDATA_RSTV,         UART_TXDATA_OFST,    UART0_BASE )
+
+    # check received data
+    TEST_LD_ADDR       ( 204, lw, 0x000000ff,   UART_RXDATA_OFST,    UART0_BASE )
+    TEST_LD_ADDR       ( 205, lw, 0x000000aa,   UART_RXDATA_OFST,    UART0_BASE )
+    TEST_LD_ADDR       ( 206, lw, 0x00000055,   UART_RXDATA_OFST,    UART0_BASE )
+    TEST_LD_ADDR       ( 207, lw, 0x00000000,   UART_RXDATA_OFST,    UART0_BASE )
+    TEST_LD_ADDR       ( 208, lw, 0x00000004,   UART_RXDATA_OFST,    UART0_BASE )
+    TEST_LD_ADDR       ( 209, lw, 0x00000003,   UART_RXDATA_OFST,    UART0_BASE )
+    TEST_LD_ADDR       ( 210, lw, 0x00000002,   UART_RXDATA_OFST,    UART0_BASE )
+    TEST_LD_ADDR       ( 211, lw, 0x00000001,   UART_RXDATA_OFST,    UART0_BASE )
+
+    # check empty Rx FIFO
+    TEST_LD_ADDR_IGNORE( 212, lw, UART_RXDATA_RSTV,   UART_RXDATA_OFST,    UART0_BASE, 0xffffff00 )
 
     # Test End
     TEST_PASSFAIL

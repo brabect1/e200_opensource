@@ -1,0 +1,193 @@
+# Copyright 2018 Tomas Brabec
+#
+# See LICENSE for license details.
+
+#include "riscv_test.h"
+#undef RVTEST_RV64M
+#define RVTEST_RV64M RVTEST_RV32M
+
+#include "test_macros.h"
+#include "soc.h"
+
+#define TEST_IO_LOOPBACK( testnum, w_value, w_offset, r_value, r_offset, base ) \
+    li  x1, base; \
+    li  x30,w_value; \
+    sw x30, w_offset(x1); \
+    nop; \
+    nop; \
+    lw x30, r_offset(x1); \
+    li  x29, MASK_XLEN(r_value); \
+    li  TESTNUM, testnum; \
+    bne x30, x29, fail;
+
+RVTEST_RV32M
+RVTEST_CODE_BEGIN
+
+# -----------------------------------------------
+# Test the UART0
+# -----------------------------------------------
+
+test_reset_value:
+    TEST_LD_ADDR       ( 1, lw, GPIO_VALUE_RSTV,   GPIO_VALUE_OFST,    GPIO0_BASE )
+    TEST_LD_ADDR       ( 2, lw, GPIO_INEN_RSTV,    GPIO_INEN_OFST,     GPIO0_BASE )
+    TEST_LD_ADDR       ( 3, lw, GPIO_OUTEN_RSTV,   GPIO_OUTEN_OFST,    GPIO0_BASE )
+    TEST_LD_ADDR       ( 4, lw, GPIO_PORT_RSTV,    GPIO_PORT_OFST,     GPIO0_BASE )
+    TEST_LD_ADDR       ( 5, lw, GPIO_PUE_RSTV,     GPIO_PUE_OFST,      GPIO0_BASE )
+    TEST_LD_ADDR       ( 6, lw, GPIO_DS_RSTV,      GPIO_DS_OFST,       GPIO0_BASE )
+    TEST_LD_ADDR       ( 7, lw, GPIO_RIE_RSTV,     GPIO_RIE_OFST,      GPIO0_BASE )
+    TEST_LD_ADDR       ( 8, lw, GPIO_RIP_RSTV,     GPIO_RIP_OFST,      GPIO0_BASE )
+    TEST_LD_ADDR       ( 9, lw, GPIO_FIE_RSTV,     GPIO_FIE_OFST,      GPIO0_BASE )
+    TEST_LD_ADDR       (10, lw, GPIO_FIP_RSTV,     GPIO_FIP_OFST,      GPIO0_BASE )
+    TEST_LD_ADDR       (11, lw, GPIO_HIE_RSTV,     GPIO_HIE_OFST,      GPIO0_BASE )
+    TEST_LD_ADDR       (12, lw, GPIO_HIP_RSTV,     GPIO_HIP_OFST,      GPIO0_BASE )
+    TEST_LD_ADDR       (13, lw, GPIO_LIE_RSTV,     GPIO_LIE_OFST,      GPIO0_BASE )
+    TEST_LD_ADDR       (14, lw, GPIO_LIP_RSTV,     GPIO_LIP_OFST,      GPIO0_BASE )
+    TEST_LD_ADDR       (15, lw, GPIO_IOFEN_RSTV,   GPIO_IOFEN_OFST,    GPIO0_BASE )
+    TEST_LD_ADDR       (16, lw, GPIO_IOFSEL_RSTV,  GPIO_IOFSEL_OFST,   GPIO0_BASE )
+    TEST_LD_ADDR       (17, lw, GPIO_XOR_RSTV,     GPIO_XOR_OFST,      GPIO0_BASE )
+
+test_read_write:
+    TEST_RW_ADDR( 100, 0xFFFFFFFF, GPIO_XOR_MASK, GPIO_XOR_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 101, 0xaaaaaaaa, GPIO_XOR_MASK, GPIO_XOR_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 102, 0x55555555, GPIO_XOR_MASK, GPIO_XOR_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 103, 0x00000000, GPIO_XOR_MASK, GPIO_XOR_OFST, GPIO0_BASE )
+
+    # xIP register is write one clear, which makes it for this test respond
+    # as if read only.
+    TEST_RO_ADDR( 110, 0xFFFFFFFF, GPIO_RIP_RSTV, GPIO_RIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 111, 0xaaaaaaaa, GPIO_RIP_RSTV, GPIO_RIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 112, 0x55555555, GPIO_RIP_RSTV, GPIO_RIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 113, 0x00000000, GPIO_RIP_RSTV, GPIO_RIP_OFST, GPIO0_BASE )
+
+    # xIP register is write one clear, which makes it for this test respond
+    # as if read only.
+    TEST_RO_ADDR( 120, 0xFFFFFFFF, GPIO_FIP_RSTV, GPIO_FIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 121, 0xaaaaaaaa, GPIO_FIP_RSTV, GPIO_FIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 122, 0x55555555, GPIO_FIP_RSTV, GPIO_FIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 123, 0x00000000, GPIO_FIP_RSTV, GPIO_FIP_OFST, GPIO0_BASE )
+
+    # xIP register is write one clear, which makes it for this test respond
+    # as if read only.
+    TEST_RO_ADDR( 130, 0xFFFFFFFF, GPIO_HIP_RSTV, GPIO_HIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 131, 0xaaaaaaaa, GPIO_HIP_RSTV, GPIO_HIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 132, 0x55555555, GPIO_HIP_RSTV, GPIO_HIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 133, 0x00000000, GPIO_HIP_RSTV, GPIO_HIP_OFST, GPIO0_BASE )
+
+    # LIP register is write one clear, and hence writing 1s will clear corresponding
+    # bits. However, the interrupt condition remains and the bits will set once agian.
+    # Hence the register responds as if read only.
+    TEST_RO_ADDR( 140, 0xFFFFFFFF, GPIO_LIP_RSTV, GPIO_LIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 141, 0xaaaaaaaa, GPIO_LIP_RSTV, GPIO_LIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 142, 0x55555555, GPIO_LIP_RSTV, GPIO_LIP_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 143, 0x00000000, GPIO_LIP_RSTV, GPIO_LIP_OFST, GPIO0_BASE )
+
+    TEST_RW_ADDR( 150, 0xFFFFFFFF, GPIO_PORT_MASK, GPIO_PORT_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 151, 0xaaaaaaaa, GPIO_PORT_MASK, GPIO_PORT_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 152, 0x55555555, GPIO_PORT_MASK, GPIO_PORT_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 153, 0x00000000, GPIO_PORT_MASK, GPIO_PORT_OFST, GPIO0_BASE )
+
+    TEST_RW_ADDR( 160, 0xFFFFFFFF, GPIO_PUE_MASK, GPIO_PUE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 161, 0xaaaaaaaa, GPIO_PUE_MASK, GPIO_PUE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 162, 0x55555555, GPIO_PUE_MASK, GPIO_PUE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 163, 0x00000000, GPIO_PUE_MASK, GPIO_PUE_OFST, GPIO0_BASE )
+
+    TEST_RW_ADDR( 170, 0xFFFFFFFF, GPIO_DS_MASK, GPIO_DS_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 171, 0xaaaaaaaa, GPIO_DS_MASK, GPIO_DS_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 172, 0x55555555, GPIO_DS_MASK, GPIO_DS_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 173, 0x00000000, GPIO_DS_MASK, GPIO_DS_OFST, GPIO0_BASE )
+
+    TEST_RW_ADDR( 180, 0xFFFFFFFF, GPIO_OUTEN_MASK, GPIO_OUTEN_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 181, 0xaaaaaaaa, GPIO_OUTEN_MASK, GPIO_OUTEN_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 182, 0x55555555, GPIO_OUTEN_MASK, GPIO_OUTEN_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 183, 0x00000000, GPIO_OUTEN_MASK, GPIO_OUTEN_OFST, GPIO0_BASE )
+
+    TEST_RO_ADDR( 190, 0xFFFFFFFF, GPIO_VALUE_RSTV, GPIO_VALUE_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 191, 0xaaaaaaaa, GPIO_VALUE_RSTV, GPIO_VALUE_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 192, 0x55555555, GPIO_VALUE_RSTV, GPIO_VALUE_OFST, GPIO0_BASE )
+    TEST_RO_ADDR( 193, 0x00000000, GPIO_VALUE_RSTV, GPIO_VALUE_OFST, GPIO0_BASE )
+
+    TEST_RW_ADDR( 200, 0xFFFFFFFF, GPIO_INEN_MASK, GPIO_INEN_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 201, 0xaaaaaaaa, GPIO_INEN_MASK, GPIO_INEN_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 202, 0x55555555, GPIO_INEN_MASK, GPIO_INEN_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 203, 0x00000000, GPIO_INEN_MASK, GPIO_INEN_OFST, GPIO0_BASE )
+
+    # Rise edge interrupt shall not occur as input is kept stable. Hence it
+    # is assumed safe to test RIE.
+    TEST_RW_ADDR( 210, 0xFFFFFFFF, GPIO_RIE_MASK, GPIO_RIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 211, 0xaaaaaaaa, GPIO_RIE_MASK, GPIO_RIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 212, 0x55555555, GPIO_RIE_MASK, GPIO_RIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 213, 0x00000000, GPIO_RIE_MASK, GPIO_RIE_OFST, GPIO0_BASE )
+
+    # Fall edge interrupt shall not occur as input is kept stable. Hence it
+    # is assumed safe to test FIE.
+    TEST_RW_ADDR( 220, 0xFFFFFFFF, GPIO_FIE_MASK, GPIO_FIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 221, 0xaaaaaaaa, GPIO_FIE_MASK, GPIO_FIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 222, 0x55555555, GPIO_FIE_MASK, GPIO_FIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 223, 0x00000000, GPIO_FIE_MASK, GPIO_FIE_OFST, GPIO0_BASE )
+
+    # To make sure not to activate an interrupt, we clear HIP before testing.
+    li t4, GPIO0_BASE
+    li t5,-1
+    sw t5, GPIO_HIP_OFST(t4)
+    TEST_RW_ADDR( 230, 0xFFFFFFFF, GPIO_HIE_MASK, GPIO_HIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 231, 0xaaaaaaaa, GPIO_HIE_MASK, GPIO_HIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 232, 0x55555555, GPIO_HIE_MASK, GPIO_HIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 233, 0x00000000, GPIO_HIE_MASK, GPIO_HIE_OFST, GPIO0_BASE )
+
+    # To make sure not to activate an interrupt, we enable inputs (default to
+    # all-1) and then clear LIP before testing. Using nop's to insert extra
+    # delay that may be needed for new IO value drain through synchronizers.
+    li t4, GPIO0_BASE
+    li t5,-1
+    sw t5, GPIO_INEN_OFST(t4)
+    nop
+    nop
+    sw t5, GPIO_LIP_OFST(t4)
+    TEST_RW_ADDR( 240, 0xFFFFFFFF, GPIO_LIE_MASK, GPIO_LIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 241, 0xaaaaaaaa, GPIO_LIE_MASK, GPIO_LIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 242, 0x55555555, GPIO_LIE_MASK, GPIO_LIE_OFST, GPIO0_BASE )
+    TEST_RW_ADDR( 243, 0x00000000, GPIO_LIE_MASK, GPIO_LIE_OFST, GPIO0_BASE )
+    li t4, GPIO0_BASE
+    sw x0, GPIO_INEN_OFST(t4)
+
+
+test_io:
+    # Enable loop back (DS all-1, PUE all-0)
+    li t4, GPIO0_BASE
+    li t5, -1
+    sw t5, GPIO_DS_OFST(t4)
+    sw x0, GPIO_PUE_OFST(t4)
+
+    # enable IO input and output
+    sw t5, GPIO_INEN_OFST(t4)
+    sw t5, GPIO_OUTEN_OFST(t4)
+
+    TEST_IO_LOOPBACK( 250, 0xFFFFFFFF, GPIO_PORT_OFST, 0xFFFFFFFF, GPIO_VALUE_OFST, GPIO0_BASE )
+    TEST_IO_LOOPBACK( 251, 0xaaaaaaaa, GPIO_PORT_OFST, 0xaaaaaaaa, GPIO_VALUE_OFST, GPIO0_BASE )
+    TEST_IO_LOOPBACK( 252, 0x55555555, GPIO_PORT_OFST, 0x55555555, GPIO_VALUE_OFST, GPIO0_BASE )
+    TEST_IO_LOOPBACK( 253, 0x00000000, GPIO_PORT_OFST, 0x00000000, GPIO_VALUE_OFST, GPIO0_BASE )
+
+    # walking one pattern
+    .set tnum, 260
+    .set tval,1
+.rept 32
+    TEST_IO_LOOPBACK( tnum, tval, GPIO_PORT_OFST, tval, GPIO_VALUE_OFST, GPIO0_BASE )
+    .set tnum,tnum + 1
+    .set tval,tval << 1
+.endr
+
+    # Test End
+    TEST_PASSFAIL
+
+
+RVTEST_CODE_END
+
+.data
+RVTEST_DATA_BEGIN
+
+TEST_DATA
+
+#data1: .word 0
+#data2: .word 0
+
+RVTEST_DATA_END

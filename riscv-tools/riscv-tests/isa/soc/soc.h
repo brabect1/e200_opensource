@@ -151,13 +151,23 @@
 # see "SiFive E300 Platform Reference Manual"
 #
 # Memory map:
-#   0x10012000 value  Pin value
-#   0x10012004 inen   Pin input enable
-#   0x10012008 outen  Pin output enable
-#   0x1001200c port   Output port value
-#   0x10012038 iofen  IOF enable
-#   0x1001203c iofsel IOF select
-#   0x10012040 outxor Ouput XOR mask
+#   0x10012000 value    Pin value
+#   0x10012004 inen     Pin input enable
+#   0x10012008 outen    Pin output enable
+#   0x1001200c port     Output port value
+#   0x10012010 pue      Pull up enable
+#   0x10012014 ds       Drive strength 
+#   0x10012018 rise_ie  Rise interrupt enable
+#   0x1001201c rise_ip  Rise interrupt pending
+#   0x10012020 fall_ie  Fall interrupt enable
+#   0x10012024 fall_ip  Fall interrupt pending
+#   0x10012028 high_ie  High interrupt enable
+#   0x1001202c high_ip  High interrupt pending
+#   0x10012030 low_ie   Low interrupt enable
+#   0x10012034 low_ip   Low interrupt pending
+#   0x10012038 iofen    IOF enable
+#   0x1001203c iofsel   IOF select
+#   0x10012040 outxor   Ouput XOR mask
 #
 # IOF Map:
 #   IO 16   0:UART0 RxD
@@ -180,6 +190,48 @@
 #define GPIO_PORT_OFST 12
 #define GPIO_PORT_RSTV 0x00000000
 #define GPIO_PORT_MASK 0xffffffff
+
+#define GPIO_PUE_OFST 16
+#define GPIO_PUE_RSTV 0x00000000
+#define GPIO_PUE_MASK 0xffffffff
+
+#define GPIO_DS_OFST 20
+#define GPIO_DS_RSTV 0x00000000
+#define GPIO_DS_MASK 0xffffffff
+
+#define GPIO_RIE_OFST 24
+#define GPIO_RIE_RSTV 0x00000000
+#define GPIO_RIE_MASK 0xffffffff
+
+#define GPIO_RIP_OFST 28
+#define GPIO_RIP_RSTV 0x00000000
+#define GPIO_RIP_MASK 0xffffffff
+
+#define GPIO_FIE_OFST 32
+#define GPIO_FIE_RSTV 0x00000000
+#define GPIO_FIE_MASK 0xffffffff
+
+#define GPIO_FIP_OFST 36
+#define GPIO_FIP_RSTV 0x00000000
+#define GPIO_FIP_MASK 0xffffffff
+
+#define GPIO_HIE_OFST 40
+#define GPIO_HIE_RSTV 0x00000000
+#define GPIO_HIE_MASK 0xffffffff
+
+#define GPIO_HIP_OFST 44
+#define GPIO_HIP_RSTV 0x00000000
+#define GPIO_HIP_MASK 0xffffffff
+
+#define GPIO_LIE_OFST 48
+#define GPIO_LIE_RSTV 0x00000000
+#define GPIO_LIE_MASK 0xffffffff
+
+# The Low interrupt pending defaults to all-1 as inputs
+# are disabled and hence resolve to logic 0.
+#define GPIO_LIP_OFST 52
+#define GPIO_LIP_RSTV 0xFFFFFFFF
+#define GPIO_LIP_MASK 0xffffffff
 
 #define GPIO_IOFEN_OFST 56
 #define GPIO_IOFEN_RSTV 0x00000000

@@ -1,3 +1,5 @@
+# Copyright 2018 Tomas Brabec
+#
 # See LICENSE for license details.
 
 #include "riscv_test.h"

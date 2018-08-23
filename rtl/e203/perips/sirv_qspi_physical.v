@@ -1,4 +1,5 @@
  /*                                                                      
+ Copyright 2018 Tomas Brabec
  Copyright 2017 Silicon Integrated Microelectronics, Inc.                
                                                                          
  Licensed under the Apache License, Version 2.0 (the "License");         
@@ -12,6 +13,12 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and     
  limitations under the License.                                          
+
+ Change log:
+
+   2018, Aug, Tomas Brabec
+   - Code cleanup (unused nets, transitive assignments, constant assignments).
+
  */                                                                      
                                                                          
                                                                          
@@ -33,7 +40,7 @@ module sirv_qspi_physical(
   input   io_port_dq_3_i,
   output  io_port_dq_3_o,
   output  io_port_dq_3_oe,
-  output  io_port_cs_0,
+  output  io_port_cs_0,  // unused
   input  [11:0] io_ctrl_sck_div,
   input   io_ctrl_sck_pol,
   input   io_ctrl_sck_pha,

@@ -1,4 +1,5 @@
  /*                                                                      
+ Copyright 2018 Tomas Brabec
  Copyright 2017 Silicon Integrated Microelectronics, Inc.                
                                                                          
  Licensed under the Apache License, Version 2.0 (the "License");         
@@ -12,6 +13,12 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and     
  limitations under the License.                                          
+
+ Change log:
+
+   2018, Aug, Tomas Brabec
+   - Code cleanup (unused nets, transitive assignments, constant assignments).
+
  */                                                                      
                                                                          
                                                                          
@@ -52,9 +59,11 @@ module sirv_qspi_media(
   input  [1:0] io_link_fmt_proto,
   input   io_link_fmt_endian,
   input   io_link_fmt_iodir,
+//---->>>> TBD: need to understand the following signals (how they are driven and what is their meaning and mutual relation)
   input   io_link_cs_set,
   input   io_link_cs_clear,
   input   io_link_cs_hold,
+//<<<<----
   output  io_link_active
 );
   wire  phy_io_port_sck;
@@ -66,17 +75,17 @@ module sirv_qspi_media(
   wire  phy_io_port_dq_2_oe;
   wire  phy_io_port_dq_3_o;
   wire  phy_io_port_dq_3_oe;
-  wire  phy_io_port_cs_0;
+//  wire  phy_io_port_cs_0;
   wire  io_op_ready;
   wire  io_rx_valid;
   wire [7:0] io_rx_bits;
   reg  cs_id;
   reg  cs_dflt_0;
-  reg  cs_set;
-  wire T_163;
-  reg  clear;
+  reg  cs_set; // TBD: naming
+  wire T_163; // combo input to cs_dflt_0 (i.e. CS output), if there were multiple CSs, this will be a vector
+  reg  clear; // TBD: naming
   reg  cs_assert;
-  wire  cs_deassert;
+  wire  cs_deassert; // TBD: naming
   wire  continuous;
   reg [1:0] state;
   wire  s_main;
@@ -84,8 +93,8 @@ module sirv_qspi_media(
 //  wire  T_184;
 //  wire  T_186;
 //  wire  T_188;
-  wire  T_189;
-  wire  T_195;
+  wire  T_189; // tx start = T_189 & io_op_ready
+  wire  T_195; // tx idle
   wire  s_interxfr;
 //  wire  T_201;
   wire  io_op_valid;
@@ -106,18 +115,29 @@ module sirv_qspi_media(
     .io_port_dq_3_i(io_port_dq_3_i),
     .io_port_dq_3_o(phy_io_port_dq_3_o),
     .io_port_dq_3_oe(phy_io_port_dq_3_oe),
-    .io_port_cs_0(phy_io_port_cs_0),
+    .io_port_cs_0(), // (phy_io_port_cs_0),
     .io_ctrl_sck_div(io_ctrl_sck_div),
     .io_ctrl_sck_pol(io_ctrl_sck_pol),
     .io_ctrl_sck_pha(io_ctrl_sck_pha),
     .io_ctrl_fmt_proto(io_link_fmt_proto),
     .io_ctrl_fmt_endian(io_link_fmt_endian),
     .io_ctrl_fmt_iodir(io_link_fmt_iodir),
-    .io_op_ready(io_op_ready),
-    .io_op_valid(io_op_valid),
-    .io_op_bits_fn(~s_main | ~cs_assert | cs_deassert), // micro-op: 0=xfer, 1=delay
-    .io_op_bits_stb((s_intercs ? 1'h1 : (s_main ? (T_195 ? 1'h1 : (cs_assert ? ~cs_deassert : 1'h0)) : 1'h0))),
-    .io_op_bits_cnt((s_intercs ? io_ctrl_dla_intercs : (s_interxfr ? io_ctrl_dla_interxfr : (s_main ? (T_195 ? 8'h0 : (T_189 ? io_ctrl_dla_cssck : (cs_assert ? (cs_deassert ? io_ctrl_dla_sckcs : io_link_cnt) : io_link_cnt))) : io_link_cnt)))),
+    .io_op_ready(io_op_ready), // micro-op handshake (acknowledge)
+    .io_op_valid(io_op_valid), // micro-op handshake (request)
+    .io_op_bits_fn(~(s_main & cs_assert & ~cs_deassert)), // micro-op: 0=xfer, 1=delay
+    .io_op_bits_stb(s_intercs | (s_main & T_195) | (s_main & cs_assert & ~cs_deassert)),
+    .io_op_bits_cnt(
+        (s_intercs ? io_ctrl_dla_intercs : 
+        (s_interxfr ? io_ctrl_dla_interxfr :
+        (s_main ? (T_195 ? 8'h0 : (T_189 ? io_ctrl_dla_cssck : (cs_assert ? (cs_deassert ? io_ctrl_dla_sckcs : io_link_cnt) : io_link_cnt))) : io_link_cnt)))
+          // when io_op_valid==1, then the micro-op corresponds to
+          //   idle state:              s_main & T_195=(~cs_assert & ~io_link_tx_valid)
+          //   cs to data start:        s_main & T_189=(~cs_assert &  io_link_tx_valid)
+          //   data xfer:               s_main & cs_assert & ~cs_deassert
+          //   data end to cs:          s_main & cs_assert &  cs_deassert
+          //   data end to data start:  s_interxfr
+          //   cs inactive:             s_intercs
+    ),
     .io_op_bits_data(io_link_tx_bits),
     .io_rx_valid(io_rx_valid),
     .io_rx_bits(io_rx_bits)
@@ -132,13 +152,15 @@ module sirv_qspi_media(
   assign io_port_dq_3_o = phy_io_port_dq_3_o;
   assign io_port_dq_3_oe = phy_io_port_dq_3_oe;
   assign io_port_cs_0 = cs_dflt_0;
-  assign io_link_tx_ready = (s_main ? (cs_assert ? (~cs_deassert ? io_op_ready : 1'h0) : 1'h0) : 1'h0);
+  assign io_link_tx_ready = s_main & cs_assert & ~cs_deassert & io_op_ready;
   assign io_link_rx_valid = io_rx_valid;
   assign io_link_rx_bits = io_rx_bits;
   assign io_link_active = cs_assert;
+  // if there were multiple CSs, then `~io_ctrl_cs_id` would become 
+  // `1 << io_ctrl_cs_id` (i.e. binary to one hot decoder)
   assign T_163 = io_ctrl_cs_dflt_0 ^ (io_link_cs_set & ~io_ctrl_cs_id);
   assign cs_deassert = clear | ((T_163 != cs_dflt_0) & ~io_link_cs_hold);
-  assign continuous = io_ctrl_dla_interxfr == 8'h0;
+  assign continuous = io_ctrl_dla_interxfr == 8'h0; // TBD: This should get locked at the start of transfer.
   assign s_main = (2'h0 == state);
 //  assign GEN_2 = cs_deassert ? (io_op_ready ? 2'h2 : state) : state;
 //  assign T_184 = ~cs_deassert;
@@ -148,7 +170,7 @@ module sirv_qspi_media(
   assign T_195 = ~cs_assert & ~io_link_tx_valid;
   assign s_interxfr = 2'h1 == state;
 //  assign T_201 = io_op_ready | continuous;
-  assign io_op_valid = s_interxfr ? ~continuous : (s_main & cs_assert & ~cs_deassert & io_link_tx_valid);
+  assign io_op_valid = (s_interxfr & ~continuous) | (s_main & cs_assert & ~cs_deassert & io_link_tx_valid);
   assign s_intercs = 2'h2 == state;
 
   always @(posedge clock or posedge reset)
@@ -163,29 +185,19 @@ module sirv_qspi_media(
       if (T_195) begin
         cs_id <= io_ctrl_cs_id;
       end
-      if (T_189) begin
-        if (io_op_ready) begin
-          cs_set <= io_link_cs_set;
-        end
+      if (T_189 & io_op_ready) begin
+        cs_set <= io_link_cs_set;
       end
     end
 
-    if (s_intercs) begin
-      if (io_op_ready) begin
-        cs_dflt_0 <= (({{1'd0}, cs_dflt_0}) ^ (({{1'd0}, cs_set}) << cs_id));
-//      end else begin
-//        if (s_main) begin
-//          if (T_195) begin
-//            cs_dflt_0 <= io_ctrl_cs_dflt_0;
-//          end else if (T_189 & io_op_ready) begin
-//            cs_dflt_0 <= T_163;
-//          end
-//        end
-      end
+    if (s_intercs & io_op_ready) begin
+      cs_dflt_0 <= (cs_dflt_0 ^ (cs_set << cs_id));
     end else if (s_main) begin
       if (T_195) begin
+        // link is idle
         cs_dflt_0 <= io_ctrl_cs_dflt_0;
       end else if (T_189 & io_op_ready) begin
+        // xfr start
         cs_dflt_0 <= T_163;
       end
     end
@@ -220,7 +232,7 @@ module sirv_qspi_media(
     end else begin
       if (s_intercs) begin
         if (io_op_ready) begin
-          state <= 2'h0;
+          state <= 2'h0; // to s_main
 //        end else begin
 //          if (s_interxfr) begin
 //            if (T_201) begin
@@ -274,7 +286,7 @@ module sirv_qspi_media(
         end
       end else if (s_interxfr) begin
         if (io_op_ready | continuous) begin
-          state <= 2'h0;
+          state <= 2'h0; // to s_main
 //        end else begin
 //          if (s_main) begin
 //            if (cs_assert) begin
@@ -289,9 +301,9 @@ module sirv_qspi_media(
       end else if (s_main) begin
           if (cs_assert) begin
             if (~cs_deassert & io_op_ready & io_op_valid) begin
-              state <= 2'h1;
+              state <= 2'h1; // to s_intercs
             end else if (cs_deassert & io_op_ready) begin
-              state <= 2'h2;
+              state <= 2'h2; // to s_interxfr
             end
           end
       end

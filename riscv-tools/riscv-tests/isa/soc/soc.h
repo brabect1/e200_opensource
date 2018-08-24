@@ -46,7 +46,92 @@
 
 
 # -----------------------------------------------
-# QSPI0
+# AON (Always ON)
+# -----------------------------------------------
+
+#define AON_BASE 0x10000000
+
+# -----------------------------------------------
+# WDOG (Watchdog Counter)
+# -----------------------------------------------
+# The memory map is listed below. For complete periph IP reference
+# see "SiFive E300 Platform Reference Manual"
+#
+# IMPORTANT: Offsets are relative to AON (Always ON) module base.
+#
+# Memory map:
+#   0x10000000 wdogcfg  Watchdog configuration
+#   0x10000008 wdogcnt  Watchdog count
+#   0x10000010 wdogs    Watchdog value scaled
+#   0x10000018 wdogfeed Watchdog feed
+#   0x1000001c wdogkey  Watchdog key
+#   0x10000020 wdogcmp  Watchdog compare
+
+#define WDOG_CFG_OFST 0
+#define WDOG_CFG_RSTV 0x00000000
+#define WDOG_CFG_MASK 0x1000330f
+
+#define WDOG_CNT_OFST 8
+#define WDOG_CNT_RSTV 0x00000000
+#define WDOG_CNT_MASK 0x7fffffff
+
+#define WDOG_SCALED_OFST 16
+#define WDOG_SCALED_RSTV 0x00000000
+#define WDOG_SCALED_MASK 0x0000ffff
+
+#define WDOG_FEED_OFST 24
+#define WDOG_FEED_RSTV 0x00000000
+#define WDOG_FEED_MASK 0x00000000
+
+#define WDOG_KEY_OFST 28
+#define WDOG_KEY_RSTV 0x00000000
+#define WDOG_KEY_MASK 0x00000001
+
+#define WDOG_CMP_OFST 32
+#define WDOG_CMP_RSTV 0x00000000
+#define WDOG_CMP_MASK 0x0000ffff
+
+#define WDOG_KEY_VALUE 0x51f15e
+#define WDOG_FEED_VALUE 0xd09f00d
+
+# -----------------------------------------------
+# RTC (Real-Time Clock)
+# -----------------------------------------------
+# The memory map is listed below. For complete periph IP reference
+# see "SiFive E300 Platform Reference Manual"
+#
+# IMPORTANT: Offsets are relative to AON (Always ON) module base.
+#
+# Memory map:
+#   0x10000040 rtccfg   RTC configuration
+#   0x10000048 rtclo    RTC count low
+#   0x1000004c rtchi    RTC count high
+#   0x10000050 rtcs     RTC value scaled
+#   0x10000060 rtccmp   RTC comapre
+
+#define RTC_CFG_OFST 64
+#define RTC_CFG_RSTV 0x00000000
+#define RTC_CFG_MASK 0x1000100f
+
+#define RTC_LO_OFST 72
+#define RTC_LO_RSTV 0x00000000
+#define RTC_LO_MASK 0xffffffff
+
+#define RTC_HI_OFST 76
+#define RTC_HI_RSTV 0x00000000
+#define RTC_HI_MASK 0x0000ffff
+
+#define RTC_SCALED_OFST 80
+#define RTC_SCALED_RSTV 0x00000000
+#define RTC_SCALED_MASK 0xFFFFFFFF
+
+#define RTC_CMP_OFST 96
+#define RTC_CMP_RSTV 0x00000000
+#define RTC_CMP_MASK 0xFFFFFFFF
+
+
+# -----------------------------------------------
+# QSPI0 (Flash QSPI)
 # -----------------------------------------------
 # The memory map is listed below. For complete periph IP reference
 # see "SiFive E300 Platform Reference Manual"

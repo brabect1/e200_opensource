@@ -31,6 +31,21 @@ module spi_model #(
     output logic[3:0] dq_t
 );
 
+typedef enum {
+    SINGLE,
+    DUAL,
+    QUAD
+} t_mode;
+
+typedef enum {
+    CMD,
+    ADDR,
+    DATA_IN,
+    DATA_OUT
+} t_xfer_type;
+
+t_xfer_type xfer_type = CMD;
+t_mode xfer_mode = SINGLE;
 logic [7:0] buffer_in;
 logic [7:0] buffer_out;
 int cnt_bit;
@@ -40,6 +55,8 @@ logic [23:0] addr_base;
 int addr_offset;
 logic [7:0] mem[0:SIZE-1];
 logic [7:0] buffer_in_comb;
+logic [7:0] buffer_out_comb;
+int cnt_bit_mask = 3'd7;
 
 task load_file(
     input string path
@@ -67,7 +84,7 @@ always_ff @(posedge sck or negedge rst_n or posedge cs_n) begin
     end
     else begin
         cnt_bit <= cnt_bit + 1;
-        if ((cnt_bit & 3'd7) == 7) cnt_byte <= cnt_byte + 1;
+        if ((cnt_bit & cnt_bit_mask) == cnt_bit_mask) cnt_byte <= cnt_byte + 1;
     end
 end
 
@@ -80,30 +97,63 @@ always_ff @(posedge sck or negedge rst_n) begin
         buffer_in <= buffer_in_comb;
 end
 
-assign dq_o = {2'b00,buffer_out[7],1'b0};
-assign dq_t = 4'b1101;
+assign buffer_out_comb =
+    (xfer_mode == QUAD) ? {buffer_out[3:0],4'h0} :
+    (xfer_mode == DUAL) ? {buffer_out[5:0],2'h0} : {buffer_out[6:0],1'b0};
+
+assign dq_o[3:2] = (xfer_mode == QUAD) ? buffer_out[7:6] : 2'b00;
+assign dq_o[1]   = (xfer_mode == QUAD) ? buffer_out[5] : buffer_out[7];
+assign dq_o[0]   = (xfer_mode == QUAD) ? buffer_out[4] : (xfer_mode == DUAL) ? buffer_out[6] : 1'b0;
+
+assign dq_t[3:2] = (xfer_mode == QUAD && xfer_type == DATA_OUT) ? 2'b00 : 2'b11;
+assign dq_t[1]   = (xfer_type != DATA_OUT);
+assign dq_t[0]   = (xfer_mode == SINGLE || xfer_type != DATA_OUT);
+
+assign cnt_bit_mask = (xfer_mode == QUAD) ? 1 : (xfer_mode == DUAL) ? 3 : 7;
 
 always_ff @(negedge sck or negedge rst_n or posedge cs_n) begin
     int addr;
     if (!rst_n || cs_n) begin
         buffer_out <= '0;
         addr_offset <= 0;
+        xfer_mode <= SINGLE;
+        xfer_type <= CMD;
     end
     else if (!cs_n)
-        if (cnt_bit > 0 && (cnt_bit & 3'd7) == 0) begin
+        if (cnt_bit > 0 && (cnt_bit & cnt_bit_mask) == 0) begin
             if (cmd == 8'hff) begin // loopback
                 buffer_out <= buffer_in;
+                xfer_type <= DATA_OUT;
             end
-            else if (cmd == 8'h03 && cnt_byte > 3) begin // read
-                addr = (cnt_byte == 4) ? addr_base : addr_base + addr_offset + 1;
-                addr_offset <= (cnt_byte == 4) ? 0 : addr_offset + 1;
-                buffer_out <= (addr < SIZE) ? mem[addr] : 'x;
+            else if (cmd == 8'h03) begin // read
+                if (cnt_byte <= 3) begin
+                    xfer_type <= ADDR;
+                end
+                else begin
+                    xfer_type <= DATA_OUT;
+                    xfer_mode <= SINGLE;
+                    addr = (cnt_byte == 4) ? addr_base : addr_base + addr_offset + 1;
+                    addr_offset <= (cnt_byte == 4) ? 0 : addr_offset + 1;
+                    buffer_out <= (addr < SIZE) ? mem[addr] : 'x;
+                end
+            end
+            else if (cmd == 8'h0b || cmd == 8'h3b || cmd == 8'h6b) begin // fast read
+                if (cnt_byte <= 3) begin
+                    xfer_type <= ADDR;
+                end
+                else begin
+                    xfer_type <= DATA_OUT;
+                    xfer_mode <= (cmd == 8'h6b) ? QUAD : (cmd == 8'h3b) ? DUAL : SINGLE;
+                    addr = (cnt_byte == 4) ? addr_base : addr_base + addr_offset + 1;
+                    addr_offset <= (cnt_byte == 4) ? 0 : addr_offset + 1;
+                    buffer_out <= (addr < SIZE) ? mem[addr] : 'x;
+                end
             end
             else
-                buffer_out <= {buffer_out[6:0],1'b0};
+                buffer_out <= buffer_out_comb;
         end
         else
-            buffer_out <= {buffer_out[6:0],1'b0};
+            buffer_out <= buffer_out_comb;
 end
 
 always_ff @(posedge sck or negedge rst_n) begin
@@ -111,7 +161,7 @@ always_ff @(posedge sck or negedge rst_n) begin
         cmd <= '1;
         addr_base <= '0;
     end
-    else if ((cnt_bit & 3'd7) == 7) begin
+    else if ((cnt_bit & cnt_bit_mask) == cnt_bit_mask) begin
         if (cnt_byte == 0) cmd <= buffer_in_comb;
         if (cnt_byte == 1) addr_base[23:16] <= buffer_in_comb;
         if (cnt_byte == 2) addr_base[15: 8] <= buffer_in_comb;

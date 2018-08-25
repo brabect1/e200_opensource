@@ -229,6 +229,37 @@
 #define SPI_IP_RSTV 0x00000000
 #define SPI_IP_MASK 0x00000003
 
+#define SPI_BIT_IRQ_TXWM 0
+#define SPI_BIT_IRQ_RXWM 1
+
+#define SPI_BIT_FMT_PROTO 0
+#define SPI_BIT_FMT_ENDIAN 2
+#define SPI_BIT_FMT_DIR 3
+#define SPI_BIT_FMT_LEN 16
+
+#define SPI_CSMODE_AUTO 0
+#define SPI_CSMODE_HOLD 2
+#define SPI_CSMODE_OFF  3
+
+#define SPI_PROTO_SINGLE 0
+#define SPI_PROTO_DUAL   1
+#define SPI_PROTO_QUAD   2
+
+#define SPI_DIR_RX 0
+#define SPI_DIR_TX 1
+
+#define SPI_ENDIAN_MSBF 0
+#define SPI_ENDIAN_LSBF 1
+
+#define SPI_BIT_FFMT_CMD_EN 0
+#define SPI_BIT_FFMT_ADDR_LEN 1
+#define SPI_BIT_FFMT_PAD_CNT 4
+#define SPI_BIT_FFMT_CMD_PROTO 8
+#define SPI_BIT_FFMT_ADDR_PROTO 10
+#define SPI_BIT_FFMT_DATA_PROTO 12
+#define SPI_BIT_FFMT_CMD_CODE 16
+#define SPI_BIT_FFMT_PAD_CODE 24
+
 # -----------------------------------------------
 # GPIO0
 # -----------------------------------------------

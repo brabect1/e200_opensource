@@ -281,6 +281,11 @@ module tb_verilator(
 
     reg [7:0] itcm_mem [0:(`E203_ITCM_RAM_DP*8)-1];
     initial begin
+        u_spi_dev.mem_set(0,8'haa);
+        u_spi_dev.mem_set(1,8'h55);
+        u_spi_dev.mem_set(2,8'h81);
+        u_spi_dev.mem_set(3,8'h0f);
+
       $readmemh({testcase, ".verilog"}, itcm_mem);
 
       for (i=0;i<(`E203_ITCM_RAM_DP);i=i+1) begin

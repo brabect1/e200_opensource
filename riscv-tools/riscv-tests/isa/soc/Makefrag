@@ -4,6 +4,7 @@
 
 soc_sc_tests = \
 	qspi-regs \
+	qspi-trans \
 	uart-regs \
 	gpio-regs \
 

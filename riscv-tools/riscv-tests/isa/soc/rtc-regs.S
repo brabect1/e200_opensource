@@ -1,0 +1,68 @@
+# Copyright 2018 Tomas Brabec
+#
+# See LICENSE for license details.
+
+#include "riscv_test.h"
+#undef RVTEST_RV64M
+#define RVTEST_RV64M RVTEST_RV32M
+
+#include "test_macros.h"
+#include "soc.h"
+
+RVTEST_RV32M
+RVTEST_CODE_BEGIN
+
+# -----------------------------------------------
+# Test the RTC (Real-Time Clock)
+# -----------------------------------------------
+
+test_reset_value:
+    TEST_LD_ADDR       ( 1, lw, RTC_CFG_RSTV,    RTC_CFG_OFST,    AON_BASE )
+    TEST_LD_ADDR       ( 2, lw, RTC_LO_RSTV,     RTC_LO_OFST,     AON_BASE )
+    TEST_LD_ADDR       ( 3, lw, RTC_HI_RSTV,     RTC_HI_OFST,     AON_BASE )
+    TEST_LD_ADDR       ( 4, lw, RTC_SCALED_RSTV, RTC_SCALED_OFST, AON_BASE )
+    TEST_LD_ADDR       ( 5, lw, RTC_CMP_RSTV,    RTC_CMP_OFST,    AON_BASE )
+
+test_read_write:
+    TEST_RW_ADDR( 100, 0xFFFFFFFF, RTC_CMP_MASK, RTC_CMP_OFST, AON_BASE )
+    TEST_RW_ADDR( 101, 0xaaaaaaaa, RTC_CMP_MASK, RTC_CMP_OFST, AON_BASE )
+    TEST_RW_ADDR( 102, 0x55555555, RTC_CMP_MASK, RTC_CMP_OFST, AON_BASE )
+    TEST_RW_ADDR( 103, 0x00000000, RTC_CMP_MASK, RTC_CMP_OFST, AON_BASE )
+
+    TEST_RO_ADDR( 110, 0xFFFFFFFF, RTC_SCALED_RSTV, RTC_SCALED_OFST, AON_BASE )
+    TEST_RO_ADDR( 111, 0xaaaaaaaa, RTC_SCALED_RSTV, RTC_SCALED_OFST, AON_BASE )
+    TEST_RO_ADDR( 112, 0x55555555, RTC_SCALED_RSTV, RTC_SCALED_OFST, AON_BASE )
+    TEST_RO_ADDR( 113, 0x00000000, RTC_SCALED_RSTV, RTC_SCALED_OFST, AON_BASE )
+
+    TEST_RW_ADDR( 120, 0xFFFFFFFF, RTC_LO_MASK, RTC_LO_OFST, AON_BASE )
+    TEST_RW_ADDR( 121, 0xaaaaaaaa, RTC_LO_MASK, RTC_LO_OFST, AON_BASE )
+    TEST_RW_ADDR( 122, 0x55555555, RTC_LO_MASK, RTC_LO_OFST, AON_BASE )
+    TEST_RW_ADDR( 123, 0x00000000, RTC_LO_MASK, RTC_LO_OFST, AON_BASE )
+
+    TEST_RW_ADDR( 130, 0xFFFFFFFF, RTC_HI_MASK, RTC_HI_OFST, AON_BASE )
+    TEST_RW_ADDR( 131, 0xaaaaaaaa, RTC_HI_MASK, RTC_HI_OFST, AON_BASE )
+    TEST_RW_ADDR( 132, 0x55555555, RTC_HI_MASK, RTC_HI_OFST, AON_BASE )
+    TEST_RW_ADDR( 133, 0x00000000, RTC_HI_MASK, RTC_HI_OFST, AON_BASE )
+
+    # We need to mask out IP (interrupt pending) bit as we can't know if
+    # any of the preceding exercises triggered it.
+    TEST_RW_ADDR_IGNORE( 140, 0xFFFFFFFF, RTC_CFG_MASK, RTC_CFG_OFST, AON_BASE, 0xefffffff )
+    TEST_RW_ADDR_IGNORE( 141, 0xaaaaaaaa, RTC_CFG_MASK, RTC_CFG_OFST, AON_BASE, 0xefffffff )
+    TEST_RW_ADDR_IGNORE( 142, 0x55555555, RTC_CFG_MASK, RTC_CFG_OFST, AON_BASE, 0xefffffff )
+    TEST_RW_ADDR_IGNORE( 143, 0x00000000, RTC_CFG_MASK, RTC_CFG_OFST, AON_BASE, 0xefffffff )
+
+    # Test End
+    TEST_PASSFAIL
+
+
+RVTEST_CODE_END
+
+.data
+RVTEST_DATA_BEGIN
+
+TEST_DATA
+
+#data1: .word 0
+#data2: .word 0
+
+RVTEST_DATA_END

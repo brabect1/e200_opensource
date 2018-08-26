@@ -14,6 +14,17 @@
       lw x30, offset(x1); \
     )
 
+#define TEST_RW_ADDR_IGNORE( testnum, value, mask, offset, base, ignmask ) \
+      .set myres,value & mask & ignmask; \
+    TEST_CASE( testnum, x30, myres, \
+      li  x1, base; \
+      li  x30,value; \
+      sw x30, offset(x1); \
+      lw x30, offset(x1); \
+      li x29,ignmask; \
+      and x30,x30,x29; \
+    )
+
 #define TEST_RO_ADDR( testnum, value, expected, offset, base ) \
     TEST_CASE( testnum, x30, expected, \
       li  x1, base; \
@@ -126,7 +137,7 @@
 #define RTC_SCALED_MASK 0xFFFFFFFF
 
 #define RTC_CMP_OFST 96
-#define RTC_CMP_RSTV 0x00000000
+#define RTC_CMP_RSTV 0xffffffff
 #define RTC_CMP_MASK 0xFFFFFFFF
 
 

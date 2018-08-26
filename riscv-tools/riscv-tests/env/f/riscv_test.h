@@ -237,6 +237,11 @@ handle_exception:                                                       \
         mret;                                         \
         /* Bob add bus-error handler here: End */                       \
 reset_vector:                                                           \
+        /* Tomas B. Change QSPI0 settings: Begin */                     \
+        li t5,0x10014000;                                               \
+        sw x0,40(t5);                                                   \
+        sw x0,44(t5);                                                   \
+        /* Tomas B. Change QSPI0 settings: End */                       \
         /* Bob Initialize t5 and t6 here: Begin */                       \
         mv t5, x0;                                                  \
         mv t6, x0;                                                  \

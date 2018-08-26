@@ -98,3 +98,12 @@ To run a single test:
     # or run as a single test
     make test-rv32ui-p-xori
 
+Troubleshoot
+------------
+
+- Core dump due to insufficient memory size: Internal memory arrays have limited size
+  (e.g. 64 KB) and when `$readmemh` gets over the limit, Verilator just aborts.
+
+- Core dump due to non-existing memory file: When a memory file (passed through
+  `TESTCASE` plus argument) does not exist, Verilator just silently aborts.
+

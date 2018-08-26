@@ -20,10 +20,11 @@ csrc = sim.cpp
 cflags =
 objdir = obj
 obj = $(csrc:%.cpp=%)
-vflags = $(if $(cflags),-CFLAGS $(cflags)) --cc --exe --Mdir $(objdir) +incdir+$(vdir)/core +incdir+$(vdir)/perips \
+vflags = $(if $(cflags),-CFLAGS "$(cflags)") --cc --exe --Mdir $(objdir) +incdir+$(vdir)/core +incdir+$(vdir)/perips \
 	 --top-module tb_verilator \
 	 -Wno-WIDTH -Wno-UNOPTFLAT -Wno-CASEINCOMPLETE -Wno-LITENDIAN
 vflags_extra = --trace
+sflags =
 
 isa_test_patts ?= rv32ui* rv32um* rv32uc* rv32ua* rv32mi*
 isa_test_dir ?= ../riscv-tools/riscv-tests/isa/generated
@@ -79,5 +80,5 @@ regression: $(isa_tests:%=test-%)
 
 test-%: $(isa_test_dir)/%.verilog
 	@test -e $*.verilog || ln -s $<
-	@mkdir -p results && echo "Running '$*' test ..." && $(objdir)/$(obj) +TESTCASE=$* > results/$*.log
+	@mkdir -p results && echo "Running '$*' test ..." && $(objdir)/$(obj) +TESTCASE=$* $(sflags) > results/$*.log
 

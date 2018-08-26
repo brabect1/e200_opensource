@@ -1,5 +1,5 @@
 /*
-Copyright 2017 Tomas Brabec
+Copyright 2018 Tomas Brabec
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ int cnt_byte;
 logic [7:0] cmd = '1;
 logic [23:0] addr_base;
 int addr_offset;
-logic [7:0] mem[0:SIZE-1];
+reg [7:0] mem[0:SIZE-1];
 logic [7:0] buffer_in_comb;
 logic [7:0] buffer_out_comb;
 int cnt_bit_mask = 3'd7;
@@ -61,9 +61,9 @@ int cnt_bit_mask = 3'd7;
 task load_file(
     input string path
 );
-    $display("%0t:\tLoading SPI memory from '%0s' ...", $realtime, path);
+    $display("Loading SPI memory from '%0s' ...", path);
     $readmemh(path,mem);
-    $display("%0t:\tLoading completed.", $realtime);
+    $display("Loading completed.");
 endtask: load_file
 
 task mem_set(
@@ -71,9 +71,9 @@ task mem_set(
     input logic[7:0] data
 );
     if (addr >= 0 && addr < SIZE) begin
-        $display("%0t:\tSetting SPI memory at %0d (%0hh) to %hh ...", $realtime, addr, addr, data);
+        $display("\tSetting SPI memory at %0d (%0hh) to %hh ...", addr, addr, data);
         mem[addr] = data;
-        $display("%0t:\t\tmem[%0d]=%hh", $realtime, addr, mem[addr]);
+        $display("\t\tmem[%0d]=%hh", addr, mem[addr]);
     end
 endtask: mem_set
 

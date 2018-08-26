@@ -66,7 +66,7 @@ int main(int argc, char **argv, char **env) {
 #endif
 	simtime++;
 
-	while (!Verilated::gotFinish() && cnt < (1 << 15)) {
+	while (!Verilated::gotFinish() && cnt < (1 << 16)) {
 		top->clk = 1;
 		top->eval();
 #if VM_TRACE && VCDTRACE

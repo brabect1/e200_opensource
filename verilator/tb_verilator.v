@@ -1,4 +1,5 @@
 /*
+Copyright 2018 Tomas Brabec
 Copyright 2017 Silicon Integrated Microelectronics, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +21,10 @@ Changelog:
     like syntax. This also included using the same clock for `hfextclk` and
     `lfextclk`.
   - Commented out error injection.
+  - Simple SPI flash model along with option (`BOOTROM=1`) to execute code from
+    there. As RAM and Flash have base addresses different in the most significant
+    byte, that byte is ignored in PC (program counter) for detecting an ISA test
+    binary reaching certain point in the test program.
 
 */
 
@@ -35,11 +40,11 @@ module tb_verilator(
   `define EXU `CPU_TOP.u_e203_cpu.u_e203_core.u_e203_exu
   `define ITCM `CPU_TOP.u_e203_srams.u_e203_itcm_ram.u_e203_itcm_gnrl_ram.u_sirv_sim_ram
 
-  `define PC_WRITE_TOHOST       `E203_PC_SIZE'h80000086
-  `define PC_EXT_IRQ_BEFOR_MRET `E203_PC_SIZE'h800000a6
-  `define PC_SFT_IRQ_BEFOR_MRET `E203_PC_SIZE'h800000be
-  `define PC_TMR_IRQ_BEFOR_MRET `E203_PC_SIZE'h800000d6
-  `define PC_AFTER_SETMTVEC     `E203_PC_SIZE'h8000015C
+  `define PC_WRITE_TOHOST       `E203_PC_SIZE'h00000086
+  `define PC_EXT_IRQ_BEFOR_MRET `E203_PC_SIZE'h000000a6
+  `define PC_SFT_IRQ_BEFOR_MRET `E203_PC_SIZE'h000000be
+  `define PC_TMR_IRQ_BEFOR_MRET `E203_PC_SIZE'h000000d6
+  `define PC_AFTER_SETMTVEC     `E203_PC_SIZE'h0000015C
 
   wire [`E203_XLEN-1:0] x3 = `EXU.u_e203_exu_regfile.rf_r[3];
   wire [`E203_PC_SIZE-1:0] pc = `EXU.u_e203_exu_commit.alu_cmt_i_pc;
@@ -58,7 +63,7 @@ module tb_verilator(
         pc_write_to_host_flag <= 1'b0;
         pc_write_to_host_cycle <= 32'b0;
     end
-    else if (pc_vld & (pc == `PC_WRITE_TOHOST)) begin
+    else if (pc_vld & (pc[27:0] == `PC_WRITE_TOHOST)) begin
         pc_write_to_host_cnt <= pc_write_to_host_cnt + 1'b1;
         pc_write_to_host_flag <= 1'b1;
         if (pc_write_to_host_flag == 1'b0) begin
@@ -118,7 +123,7 @@ module tb_verilator(
 //  initial begin
 //    tb_itcm_bus_err = 1'b0;
 //    #100
-//    @(pc == `PC_AFTER_SETMTVEC ) // Wait the program goes out the reset_vector program
+//    @(pc[27:0] == `PC_AFTER_SETMTVEC ) // Wait the program goes out the reset_vector program
 //    forever begin
 //      repeat ($urandom_range(1, 20)) @(posedge clk) tb_itcm_bus_err = 1'b0; // Wait random times
 //      repeat ($urandom_range(1, 200)) @(posedge clk) tb_itcm_bus_err = 1'b1; // Wait random times
@@ -145,11 +150,11 @@ module tb_verilator(
 //
 //  initial begin
 //    #100
-//    @(pc == `PC_AFTER_SETMTVEC ) // Wait the program goes out the reset_vector program
+//    @(pc[27:0] == `PC_AFTER_SETMTVEC ) // Wait the program goes out the reset_vector program
 //    forever begin
 //      repeat ($urandom_range(1, 1000)) @(posedge clk) tb_ext_irq = 1'b0; // Wait random times
 //      tb_ext_irq = 1'b1; // assert the irq
-//      @((pc == `PC_EXT_IRQ_BEFOR_MRET)) // Wait the program run into the IRQ handler by check PC values
+//      @((pc[27:0] == `PC_EXT_IRQ_BEFOR_MRET)) // Wait the program run into the IRQ handler by check PC values
 //      tb_ext_irq = 1'b0;
 //      if(stop_assert_irq) begin
 //          break;
@@ -159,11 +164,11 @@ module tb_verilator(
 //
 //  initial begin
 //    #100
-//    @(pc == `PC_AFTER_SETMTVEC ) // Wait the program goes out the reset_vector program
+//    @(pc[27:0] == `PC_AFTER_SETMTVEC ) // Wait the program goes out the reset_vector program
 //    forever begin
 //      repeat ($urandom_range(1, 1000)) @(posedge clk) tb_sft_irq = 1'b0; // Wait random times
 //      tb_sft_irq = 1'b1; // assert the irq
-//      @((pc == `PC_SFT_IRQ_BEFOR_MRET)) // Wait the program run into the IRQ handler by check PC values
+//      @((pc[27:0] == `PC_SFT_IRQ_BEFOR_MRET)) // Wait the program run into the IRQ handler by check PC values
 //      tb_sft_irq = 1'b0;
 //      if(stop_assert_irq) begin
 //          break;
@@ -174,11 +179,11 @@ module tb_verilator(
 ////---->>>>
 //  initial begin
 //    #100
-//    @(pc == `PC_AFTER_SETMTVEC ) // Wait the program goes out the reset_vector program
+//    @(pc[27:0] == `PC_AFTER_SETMTVEC ) // Wait the program goes out the reset_vector program
 //    forever begin
 //      repeat ($urandom_range(1, 1000)) @(posedge clk) tb_tmr_irq = 1'b0; // Wait random times
 //      tb_tmr_irq = 1'b1; // assert the irq
-//      @((pc == `PC_TMR_IRQ_BEFOR_MRET)) // Wait the program run into the IRQ handler by check PC values
+//      @((pc[27:0] == `PC_TMR_IRQ_BEFOR_MRET)) // Wait the program run into the IRQ handler by check PC values
 //      tb_tmr_irq = 1'b0;
 //      if(stop_assert_irq) begin
 //          break;
@@ -200,16 +205,7 @@ module tb_verilator(
   reg[8*64:1] testcase;
 //  integer dumpwave;
 
-  initial begin
-    $display("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");  
-    if($value$plusargs("TESTCASE=%s",testcase))begin
-      $display("TESTCASE=%s",testcase);
-    end
-    else begin
-	    $fatal(1,"No TESTCASE defined!");
-	    $finish;
-    end
-  end
+  integer bootrom_n;
 
   always  @(pc_write_to_host_cnt) begin
 	  if (pc_write_to_host_cnt == 32'd8) begin
@@ -223,6 +219,7 @@ module tb_verilator(
         $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         $display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         $display("~TESTCASE: %s ~~~~~~~~~~~~~", testcase);
+        $display("~BOOT: %0s ~~~~~~~~~~~~~", bootrom_n ? "Flash" : "RAM" );
         $display("~~~~~~~~~~~~~~Total cycle_count value: %d ~~~~~~~~~~~~~", cycle_count);
         $display("~~~~~~~~~~The valid Instruction Count: %d ~~~~~~~~~~~~~", valid_ir_cycle);
         $display("~~~~~The test ending reached at cycle: %d ~~~~~~~~~~~~~", pc_write_to_host_cycle);
@@ -280,39 +277,55 @@ module tb_verilator(
   integer i;
 
     reg [7:0] itcm_mem [0:(`E203_ITCM_RAM_DP*8)-1];
+
     initial begin
+      $display("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");  
+      if($value$plusargs("TESTCASE=%s",testcase))begin
+        $display("TESTCASE=%s",testcase);
+      end
+      else begin
+	      $fatal(1,"No TESTCASE defined!");
+	      $finish;
+      end
+
+      if(!$value$plusargs("BOOTROM=%d",bootrom_n))
+        bootrom_n = 0;
+      $display("BOOTROM=%b", bootrom_n != 0);
+
+      if (bootrom_n != 0) begin
+        u_spi_dev.load_file({testcase,".verilog"});
+      end
+      else begin
         u_spi_dev.mem_set(0,8'haa);
         u_spi_dev.mem_set(1,8'h55);
         u_spi_dev.mem_set(2,8'h81);
         u_spi_dev.mem_set(3,8'h0f);
 
-      $readmemh({testcase, ".verilog"}, itcm_mem);
+          $readmemh({testcase, ".verilog"}, itcm_mem);
 
-      for (i=0;i<(`E203_ITCM_RAM_DP);i=i+1) begin
-          `ITCM.mem_r[i][00+7:00] = itcm_mem[i*8+0];
-          `ITCM.mem_r[i][08+7:08] = itcm_mem[i*8+1];
-          `ITCM.mem_r[i][16+7:16] = itcm_mem[i*8+2];
-          `ITCM.mem_r[i][24+7:24] = itcm_mem[i*8+3];
-          `ITCM.mem_r[i][32+7:32] = itcm_mem[i*8+4];
-          `ITCM.mem_r[i][40+7:40] = itcm_mem[i*8+5];
-          `ITCM.mem_r[i][48+7:48] = itcm_mem[i*8+6];
-          `ITCM.mem_r[i][56+7:56] = itcm_mem[i*8+7];
+          for (i=0;i<(`E203_ITCM_RAM_DP);i=i+1) begin
+              `ITCM.mem_r[i][00+7:00] = itcm_mem[i*8+0];
+              `ITCM.mem_r[i][08+7:08] = itcm_mem[i*8+1];
+              `ITCM.mem_r[i][16+7:16] = itcm_mem[i*8+2];
+              `ITCM.mem_r[i][24+7:24] = itcm_mem[i*8+3];
+              `ITCM.mem_r[i][32+7:32] = itcm_mem[i*8+4];
+              `ITCM.mem_r[i][40+7:40] = itcm_mem[i*8+5];
+              `ITCM.mem_r[i][48+7:48] = itcm_mem[i*8+6];
+              `ITCM.mem_r[i][56+7:56] = itcm_mem[i*8+7];
+          end
+
+            $display("ITCM 0x00: %h", `ITCM.mem_r[8'h00]);
+            $display("ITCM 0x01: %h", `ITCM.mem_r[8'h01]);
+            $display("ITCM 0x02: %h", `ITCM.mem_r[8'h02]);
+            $display("ITCM 0x03: %h", `ITCM.mem_r[8'h03]);
+            $display("ITCM 0x04: %h", `ITCM.mem_r[8'h04]);
+            $display("ITCM 0x05: %h", `ITCM.mem_r[8'h05]);
+            $display("ITCM 0x06: %h", `ITCM.mem_r[8'h06]);
+            $display("ITCM 0x07: %h", `ITCM.mem_r[8'h07]);
+            $display("ITCM 0x16: %h", `ITCM.mem_r[8'h16]);
+            $display("ITCM 0x20: %h", `ITCM.mem_r[8'h20]);
       end
-
-        $display("ITCM 0x00: %h", `ITCM.mem_r[8'h00]);
-        $display("ITCM 0x01: %h", `ITCM.mem_r[8'h01]);
-        $display("ITCM 0x02: %h", `ITCM.mem_r[8'h02]);
-        $display("ITCM 0x03: %h", `ITCM.mem_r[8'h03]);
-        $display("ITCM 0x04: %h", `ITCM.mem_r[8'h04]);
-        $display("ITCM 0x05: %h", `ITCM.mem_r[8'h05]);
-        $display("ITCM 0x06: %h", `ITCM.mem_r[8'h06]);
-        $display("ITCM 0x07: %h", `ITCM.mem_r[8'h07]);
-        $display("ITCM 0x16: %h", `ITCM.mem_r[8'h16]);
-        $display("ITCM 0x20: %h", `ITCM.mem_r[8'h20]);
-
     end 
-
-
 
   wire jtag_TDI = 1'b0;
   wire jtag_TDO;
@@ -586,7 +599,7 @@ e203_soc_top u_e203_soc_top(
    .io_pads_aon_pmu_vddpaden_o_oval (),
     .io_pads_aon_pmu_padrst_o_oval    (),
 
-    .io_pads_bootrom_n_i_ival       (1'b0),// In Simulation we boot from ROM
+    .io_pads_bootrom_n_i_ival       (bootrom_n != 0),// 0=boot from ROM, 1=boot from SPI Flash
     .io_pads_dbgmode0_n_i_ival       (1'b1),
     .io_pads_dbgmode1_n_i_ival       (1'b1),
     .io_pads_dbgmode2_n_i_ival       (1'b1) 
@@ -597,7 +610,7 @@ for (genvar i=0; i<4; i++) begin
     assign spi_dq[i] = spi_dev_dq_t[i] ? 1'bz : spi_dev_dq_o[i];
 end
 
-spi_model u_spi_dev(
+spi_model#(.SIZE(2**16)) u_spi_dev(
     .sck(sck),
     .rst_n(rst_n),
     .cs_n(spi_cs_n),

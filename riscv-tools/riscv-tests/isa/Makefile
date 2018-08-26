@@ -54,6 +54,7 @@ vpath %.S $(src_dir)
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_OPTS) $< > $@
 	$(RISCV_OBJCOPY) $(RISCV_OBJCOPY_OPTS) $<   $<.verilog
 	sed -i 's/@800/@000/g' $<.verilog
+	sed -i 's/@200/@000/g' $<.verilog
 	sed -i 's/@00002FB8/@00002000/g' $<.verilog
 
 %.out: %
@@ -62,11 +63,23 @@ vpath %.S $(src_dir)
 %.out32: %
 	$(RISCV_SIM) --isa=rv32gc $< 2> $@
 
+# Defines a dynamic target for compiling an ISA test.
+#
+# Arguments:
+#   1: ISA tests folder (e.g. `rv31ui`, `soc`, etc.).
+#   2: Compiler flags. Normally conveys only architecture and ABI flags
+#      (e.g. `-march=rv32i -mabi=ilp32`). Users may add extra flags for
+#      include paths and others.
+#   3: (optional) Extra dependencies, such as header files that ISA test
+#      binaries depend on.
+#   4: Environment type (e.g. `p`, `f`, etc.). The environment provides the
+#      startup code and a linker script.
+#
 define compile_template
 
-$$($(1)_p_tests): $(1)-p-%: $(1)/%.S $(3)
-	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(src_dir)/../env/p -I$(src_dir)/macros/scalar -T$(src_dir)/../env/p/link.ld $$< -o $$@
-$(1)_tests += $$($(1)_p_tests)
+$$($(1)_$(4)_tests): $(1)-$(4)-%: $(1)/%.S $(3)
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(src_dir)/../env/$(4) -I$(src_dir)/macros/scalar -T$(src_dir)/../env/$(4)/link.ld $$< -o $$@
+$(1)_tests += $$($(1)_$(4)_tests)
 
 $(1)_tests_dump = $$(addsuffix .dump, $$($(1)_tests))
 
@@ -78,27 +91,28 @@ tests += $$($(1)_tests)
 
 endef
 
-$(eval $(call compile_template,rv32ui,-march=rv32imafdc -mabi=ilp32))
-$(eval $(call compile_template,rv32uc,-march=rv32imafdc -mabi=ilp32))
-$(eval $(call compile_template,rv32um,-march=rv32imafdc -mabi=ilp32))
-$(eval $(call compile_template,rv32ua,-march=rv32imafdc -mabi=ilp32))
-$(eval $(call compile_template,rv32uf,-march=rv32imafdc -mabi=ilp32))
-$(eval $(call compile_template,rv32ud,-march=rv32imafdc -mabi=ilp32))
-#$(eval $(call compile_template,rv32si,-march=rv32imafdc -mabi=ilp32))
-$(eval $(call compile_template,rv32mi,-march=rv32imafdc -mabi=ilp32))
-#$(eval $(call compile_template,rv32imc_0,-march=rv32imafdc -mabi=ilp32))
-#$(eval $(call compile_template,rv32imc_1,-march=rv32imafdc -mabi=ilp32))
-#$(eval $(call compile_template,rv32imc_2,-march=rv32imafdc -mabi=ilp32))
-$(eval $(call compile_template,soc,-march=rv32imafdc -mabi=ilp32 -I$(src_dir)/soc,$(src_dir)/soc/soc.h))
+$(eval $(call compile_template,rv32ui,-march=rv32imafdc -mabi=ilp32,,p))
+$(eval $(call compile_template,rv32ui,-march=rv32imafdc -mabi=ilp32,,f))
+$(eval $(call compile_template,rv32uc,-march=rv32imafdc -mabi=ilp32,,p))
+$(eval $(call compile_template,rv32um,-march=rv32imafdc -mabi=ilp32,,p))
+$(eval $(call compile_template,rv32ua,-march=rv32imafdc -mabi=ilp32,,p))
+$(eval $(call compile_template,rv32uf,-march=rv32imafdc -mabi=ilp32,,p))
+$(eval $(call compile_template,rv32ud,-march=rv32imafdc -mabi=ilp32,,p))
+#$(eval $(call compile_template,rv32si,-march=rv32imafdc -mabi=ilp32,,p))
+$(eval $(call compile_template,rv32mi,-march=rv32imafdc -mabi=ilp32,,p))
+#$(eval $(call compile_template,rv32imc_0,-march=rv32imafdc -mabi=ilp32,,p))
+#$(eval $(call compile_template,rv32imc_1,-march=rv32imafdc -mabi=ilp32,,p))
+#$(eval $(call compile_template,rv32imc_2,-march=rv32imafdc -mabi=ilp32,,p))
+$(eval $(call compile_template,soc,-march=rv32imafdc -mabi=ilp32 -I$(src_dir)/soc,$(src_dir)/soc/soc.h,p))
 ifeq ($(XLEN),64)
-$(eval $(call compile_template,rv64ui,-march=rv64imafdc -mabi=lp64))
-$(eval $(call compile_template,rv64uc,-march=rv64imafdc -mabi=lp64))
-$(eval $(call compile_template,rv64um,-march=rv64imafdc -mabi=lp64))
-$(eval $(call compile_template,rv64ua,-march=rv64imafdc -mabi=lp64))
-$(eval $(call compile_template,rv64uf,-march=rv64imafdc -mabi=lp64))
-$(eval $(call compile_template,rv64ud,-march=rv64imafdc -mabi=lp64))
-$(eval $(call compile_template,rv64si,-march=rv64imafdc -mabi=lp64))
-$(eval $(call compile_template,rv64mi,-march=rv64imafdc -mabi=lp64))
+$(eval $(call compile_template,rv64ui,-march=rv64imafdc -mabi=lp64,,p))
+$(eval $(call compile_template,rv64uc,-march=rv64imafdc -mabi=lp64,,p))
+$(eval $(call compile_template,rv64um,-march=rv64imafdc -mabi=lp64,,p))
+$(eval $(call compile_template,rv64ua,-march=rv64imafdc -mabi=lp64,,p))
+$(eval $(call compile_template,rv64uf,-march=rv64imafdc -mabi=lp64,,p))
+$(eval $(call compile_template,rv64ud,-march=rv64imafdc -mabi=lp64,,p))
+$(eval $(call compile_template,rv64si,-march=rv64imafdc -mabi=lp64,,p))
+$(eval $(call compile_template,rv64mi,-march=rv64imafdc -mabi=lp64,,p))
 endif
 
 tests_spike_rpt = $(addsuffix .spike.rpt, $(tests))

@@ -99,7 +99,7 @@
 #define WDOG_KEY_MASK 0x00000001
 
 #define WDOG_CMP_OFST 32
-#define WDOG_CMP_RSTV 0x00000000
+#define WDOG_CMP_RSTV 0x0000ffff
 #define WDOG_CMP_MASK 0x0000ffff
 
 #define WDOG_KEY_VALUE 0x51f15e

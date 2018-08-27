@@ -8,6 +8,7 @@ soc_sc_tests = \
 	uart-regs \
 	gpio-regs \
 	rtc-regs \
+	wdog-regs \
 
 soc_p_tests = $(addprefix soc-p-, $(soc_sc_tests))
 

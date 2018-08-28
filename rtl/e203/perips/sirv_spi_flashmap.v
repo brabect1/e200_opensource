@@ -18,6 +18,8 @@
 
    2018, Aug, Tomas Brabec
    - Code cleanup (unused nets, transitive assignments, constant assignments).
+   - Made the formatting settings be latched so that users can change formatting
+     without adverse effects on an in-flight flash transaction.
 
  */                                                                      
                                                                          
@@ -59,6 +61,24 @@ module sirv_qspi_flashmap(
   input   io_link_active,
   output  io_link_lock
 );
+  wire [1:0] ctrl_insn_cmd_proto;
+  wire [7:0] ctrl_insn_cmd_code;
+  wire  ctrl_insn_cmd_en;
+  wire [1:0] ctrl_insn_addr_proto;
+  wire [2:0] ctrl_insn_addr_len;
+  wire [7:0] ctrl_insn_pad_code;
+  wire [3:0] ctrl_insn_pad_cnt;
+  wire [1:0] ctrl_insn_data_proto;
+  wire  ctrl_fmt_endian;
+  reg [1:0] latched_ctrl_insn_cmd_proto;
+  reg [7:0] latched_ctrl_insn_cmd_code;
+  reg  latched_ctrl_insn_cmd_en;
+  reg [1:0] latched_ctrl_insn_addr_proto;
+  reg [2:0] latched_ctrl_insn_addr_len;
+  reg [7:0] latched_ctrl_insn_pad_code;
+  reg [3:0] latched_ctrl_insn_pad_cnt;
+  reg [1:0] latched_ctrl_insn_data_proto;
+  reg  latched_ctrl_fmt_endian;
   wire  merge;
   reg [3:0] cnt;
   wire  cnt_cmp_0;
@@ -82,10 +102,10 @@ module sirv_qspi_flashmap(
   assign io_data_valid = (s_data_post ? io_link_rx_valid : (s_idle ? (T_160 ? io_addr_valid : 1'h0) : 1'h0));
   assign io_data_bits = (s_idle ? (T_160 ? 8'h0 : io_link_rx_bits) : io_link_rx_bits);
   assign io_link_tx_valid = (s_data_post ? 1'h0 : (s_idle ? 1'h0 : (s_addr ? (cnt_cmp_0 == 1'h0) : 1'h1)));
-  assign io_link_tx_bits = (s_pad ? io_ctrl_insn_pad_code : (s_addr ? ((((cnt_cmp_1 ? io_addr_bits_hold[7:0] : 8'h0) | ((cnt == 4'h2) ? io_addr_bits_hold[15:8] : 8'h0)) | ((cnt == 4'h3) ? io_addr_bits_hold[23:16] : 8'h0)) | ((cnt == 4'h4) ? io_addr_bits_hold[31:24] : 8'h0)) : io_ctrl_insn_cmd_code));
-  assign io_link_cnt = {{4'd0}, (s_pad ? io_ctrl_insn_pad_cnt : ((((2'h0 == io_link_fmt_proto) ? 4'h8 : 4'h0) | ({{1'd0}, ((2'h1 == io_link_fmt_proto) ? 3'h4 : 3'h0)})) | ({{2'd0}, ((2'h2 == io_link_fmt_proto) ? 2'h2 : 2'h0)})))};
-  assign io_link_fmt_proto = (s_pre ? io_ctrl_insn_data_proto : (s_cmd ? io_ctrl_insn_cmd_proto : io_ctrl_insn_addr_proto));
-  assign io_link_fmt_endian = io_ctrl_fmt_endian;
+  assign io_link_tx_bits = (s_pad ? ctrl_insn_pad_code : (s_addr ? ((((cnt_cmp_1 ? io_addr_bits_hold[7:0] : 8'h0) | ((cnt == 4'h2) ? io_addr_bits_hold[15:8] : 8'h0)) | ((cnt == 4'h3) ? io_addr_bits_hold[23:16] : 8'h0)) | ((cnt == 4'h4) ? io_addr_bits_hold[31:24] : 8'h0)) : ctrl_insn_cmd_code));
+  assign io_link_cnt = {{4'd0}, (s_pad ? ctrl_insn_pad_cnt : ((((2'h0 == io_link_fmt_proto) ? 4'h8 : 4'h0) | ({{1'd0}, ((2'h1 == io_link_fmt_proto) ? 3'h4 : 3'h0)})) | ({{2'd0}, ((2'h2 == io_link_fmt_proto) ? 2'h2 : 2'h0)})))};
+  assign io_link_fmt_proto = (s_pre ? ctrl_insn_data_proto : (s_cmd ? ctrl_insn_cmd_proto : ctrl_insn_addr_proto));
+  assign io_link_fmt_endian = ctrl_fmt_endian;
   assign io_link_fmt_iodir = ~s_pre;
   assign io_link_cs_set = 1'h1;
   assign io_link_cs_clear = s_idle & io_en & io_addr_valid & T_153;
@@ -99,7 +119,7 @@ module sirv_qspi_flashmap(
   assign T_146 = cnt - 4'h1;
   assign T_153 = ~merge;
   assign T_160 = ~io_en;
-  assign GEN_19 = s_idle ? (io_en ? (io_addr_valid ? (T_153 ? (io_ctrl_insn_cmd_en ? 3'h1 : 3'h2) : (merge ? 3'h4 : state)) : state) : state) : state;
+  assign GEN_19 = s_idle ? (io_en ? (io_addr_valid ? (T_153 ? (ctrl_insn_cmd_en ? 3'h1 : 3'h2) : (merge ? 3'h4 : state)) : state) : state) : state;
   assign GEN_28 = (s_cmd & io_link_tx_ready) ? 3'h2 : GEN_19;
   assign GEN_33 = (s_addr & cnt_done) ? 3'h3 : GEN_28;
   assign s_idle = 3'h0 == state;
@@ -115,7 +135,7 @@ module sirv_qspi_flashmap(
   end
   else begin
     if (s_cmd & io_link_tx_ready) begin
-      cnt <= {1'd0, io_ctrl_insn_addr_len};
+      cnt <= {1'd0, ctrl_insn_addr_len};
     end else if (s_addr & T_144) begin
       cnt <= T_146[3:0];
     end
@@ -154,7 +174,7 @@ module sirv_qspi_flashmap(
                             if (io_en) begin
                               if (io_addr_valid) begin
                                 if (T_153) begin
-                                  if (io_ctrl_insn_cmd_en) begin
+                                  if (ctrl_insn_cmd_en) begin
                                     state <= 3'h1;
                                   end else begin
                                     state <= 3'h2;
@@ -174,7 +194,7 @@ module sirv_qspi_flashmap(
                           if (io_en) begin
                             if (io_addr_valid) begin
                               if (T_153) begin
-                                if (io_ctrl_insn_cmd_en) begin
+                                if (ctrl_insn_cmd_en) begin
                                   state <= 3'h1;
                                 end else begin
                                   state <= 3'h2;
@@ -200,7 +220,7 @@ module sirv_qspi_flashmap(
                           if (io_en) begin
                             if (io_addr_valid) begin
                               if (T_153) begin
-                                if (io_ctrl_insn_cmd_en) begin
+                                if (ctrl_insn_cmd_en) begin
                                   state <= 3'h1;
                                 end else begin
                                   state <= 3'h2;
@@ -220,7 +240,7 @@ module sirv_qspi_flashmap(
                         if (io_en) begin
                           if (io_addr_valid) begin
                             if (T_153) begin
-                              if (io_ctrl_insn_cmd_en) begin
+                              if (ctrl_insn_cmd_en) begin
                                 state <= 3'h1;
                               end else begin
                                 state <= 3'h2;
@@ -324,5 +344,39 @@ module sirv_qspi_flashmap(
         end
       end
     end
+
+  always @(posedge clock or posedge reset)
+    if (reset) begin
+      latched_ctrl_insn_cmd_proto   <= 2'd0;
+      latched_ctrl_insn_cmd_code    <= 8'd0;
+      latched_ctrl_insn_cmd_en      <= 1'b0;
+      latched_ctrl_insn_addr_proto  <= 2'd0;
+      latched_ctrl_insn_addr_len    <= 3'd0;
+      latched_ctrl_insn_pad_code    <= 8'd0;
+      latched_ctrl_insn_pad_cnt     <= 4'd0;
+      latched_ctrl_insn_data_proto  <= 2'd0;
+      latched_ctrl_fmt_endian       <= 1'b0;
+    end
+    else if (~io_link_active) begin
+      latched_ctrl_insn_cmd_proto   <= io_ctrl_insn_cmd_proto  ;
+      latched_ctrl_insn_cmd_code    <= io_ctrl_insn_cmd_code   ;
+      latched_ctrl_insn_cmd_en      <= io_ctrl_insn_cmd_en     ;
+      latched_ctrl_insn_addr_proto  <= io_ctrl_insn_addr_proto ;
+      latched_ctrl_insn_addr_len    <= io_ctrl_insn_addr_len   ;
+      latched_ctrl_insn_pad_code    <= io_ctrl_insn_pad_code   ;
+      latched_ctrl_insn_pad_cnt     <= io_ctrl_insn_pad_cnt    ;
+      latched_ctrl_insn_data_proto  <= io_ctrl_insn_data_proto ;
+      latched_ctrl_fmt_endian       <= io_ctrl_fmt_endian      ;
+    end
+
+  assign ctrl_insn_cmd_proto   = io_link_active ? latched_ctrl_insn_cmd_proto  : io_ctrl_insn_cmd_proto  ;
+  assign ctrl_insn_cmd_code    = io_link_active ? latched_ctrl_insn_cmd_code   : io_ctrl_insn_cmd_code   ;
+  assign ctrl_insn_cmd_en      = io_link_active ? latched_ctrl_insn_cmd_en     : io_ctrl_insn_cmd_en     ;
+  assign ctrl_insn_addr_proto  = io_link_active ? latched_ctrl_insn_addr_proto : io_ctrl_insn_addr_proto ;
+  assign ctrl_insn_addr_len    = io_link_active ? latched_ctrl_insn_addr_len   : io_ctrl_insn_addr_len   ;
+  assign ctrl_insn_pad_code    = io_link_active ? latched_ctrl_insn_pad_code   : io_ctrl_insn_pad_code   ;
+  assign ctrl_insn_pad_cnt     = io_link_active ? latched_ctrl_insn_pad_cnt    : io_ctrl_insn_pad_cnt    ;
+  assign ctrl_insn_data_proto  = io_link_active ? latched_ctrl_insn_data_proto : io_ctrl_insn_data_proto ;
+  assign ctrl_fmt_endian       = io_link_active ? latched_ctrl_fmt_endian      : io_ctrl_fmt_endian      ;
 
 endmodule

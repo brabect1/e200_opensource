@@ -56,7 +56,6 @@ module sirv_repeater_6(
   reg [29:0] saved_address;
   reg  saved_mask;
   reg [7:0] saved_data;
-  wire  T_90;
   assign io_full = full;
   assign io_enq_ready = io_deq_ready & ~full;
   assign io_deq_valid = io_enq_valid | full;
@@ -67,7 +66,6 @@ module sirv_repeater_6(
   assign io_deq_bits_address = (full ? saved_address : io_enq_bits_address);
   assign io_deq_bits_mask = (full ? saved_mask : io_enq_bits_mask);
   assign io_deq_bits_data = (full ? saved_data : io_enq_bits_data);
-  assign T_90 = (io_enq_ready & io_enq_valid) & io_repeat;
 
   always @(posedge clock or posedge reset)
     if (reset) begin
@@ -75,10 +73,8 @@ module sirv_repeater_6(
     end else begin
       if (io_deq_ready & io_deq_valid & ~io_repeat) begin
         full <= 1'h0;
-      end else begin
-        if (T_90) begin
-          full <= 1'h1;
-        end
+      end else if (io_enq_ready & io_enq_valid & io_repeat) begin
+        full <= 1'h1;
       end
     end
 
@@ -93,28 +89,14 @@ module sirv_repeater_6(
     saved_mask <= 1'b0;
     saved_data <= 8'b0;
   end
-  else begin
-    if (T_90) begin
-      saved_opcode <= io_enq_bits_opcode;
-    end
-    if (T_90) begin
-      saved_param <= io_enq_bits_param;
-    end
-    if (T_90) begin
-      saved_size <= io_enq_bits_size;
-    end
-    if (T_90) begin
-      saved_source <= io_enq_bits_source;
-    end
-    if (T_90) begin
-      saved_address <= io_enq_bits_address;
-    end
-    if (T_90) begin
-      saved_mask <= io_enq_bits_mask;
-    end
-    if (T_90) begin
-      saved_data <= io_enq_bits_data;
-    end
+  else if (io_enq_ready & io_enq_valid & io_repeat) begin
+    saved_opcode <= io_enq_bits_opcode;
+    saved_param <= io_enq_bits_param;
+    saved_size <= io_enq_bits_size;
+    saved_source <= io_enq_bits_source;
+    saved_address <= io_enq_bits_address;
+    saved_mask <= io_enq_bits_mask;
+    saved_data <= io_enq_bits_data;
   end
 
 endmodule

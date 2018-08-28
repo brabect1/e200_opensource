@@ -1,4 +1,5 @@
  /*                                                                      
+ Copyright 2018 Tomas Brabec
  Copyright 2017 Silicon Integrated Microelectronics, Inc.                
                                                                          
  Licensed under the Apache License, Version 2.0 (the "License");         
@@ -12,6 +13,12 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and     
  limitations under the License.                                          
+
+ Change log:
+
+   2018, Aug, Tomas Brabec
+   - Removed unused TileLink channels (B,C,E).
+
  */                                                                      
                                                                          
                                                                          
@@ -101,33 +108,6 @@ module sirv_flash_qspi_top(
   assign  i_icb_rsp_valid = io_tl_r_0_d_valid;
   assign  i_icb_rsp_rdata = io_tl_r_0_d_bits_data;
 
-  // Not used
-  wire  io_tl_r_0_b_ready = 1'b0;
-  wire  io_tl_r_0_b_valid;
-  wire  [2:0] io_tl_r_0_b_bits_opcode;
-  wire  [1:0] io_tl_r_0_b_bits_param;
-  wire  [2:0] io_tl_r_0_b_bits_size;
-  wire  [4:0] io_tl_r_0_b_bits_source;
-  wire  [28:0] io_tl_r_0_b_bits_address;
-  wire  [3:0] io_tl_r_0_b_bits_mask;
-  wire  [31:0] io_tl_r_0_b_bits_data;
-
-  // Not used
-  wire  io_tl_r_0_c_ready;
-  wire  io_tl_r_0_c_valid = 1'b0;
-  wire  [2:0] io_tl_r_0_c_bits_opcode = 3'b0;
-  wire  [2:0] io_tl_r_0_c_bits_param = 3'b0;
-  wire  [2:0] io_tl_r_0_c_bits_size = 3'd2;
-  wire  [4:0] io_tl_r_0_c_bits_source = 5'b0;
-  wire  [28:0] io_tl_r_0_c_bits_address = 29'b0;
-  wire  [31:0] io_tl_r_0_c_bits_data = 32'b0;
-  wire  io_tl_r_0_c_bits_error = 1'b0;
-
-  // Not used
-  wire  io_tl_r_0_e_ready;
-  wire  io_tl_r_0_e_valid = 1'b0;
-  wire  io_tl_r_0_e_bits_sink = 1'b0;
-
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
@@ -159,33 +139,6 @@ module sirv_flash_qspi_top(
   assign  f_icb_rsp_valid = io_tl_f_0_d_valid;
   assign  f_icb_rsp_rdata = io_tl_f_0_d_bits_data;
 
-  // Not used
-  wire  io_tl_f_0_b_ready = 1'b0;
-  wire  io_tl_f_0_b_valid;
-  wire  [2:0] io_tl_f_0_b_bits_opcode;
-  wire  [1:0] io_tl_f_0_b_bits_param;
-  wire  [2:0] io_tl_f_0_b_bits_size;
-  wire  [1:0] io_tl_f_0_b_bits_source;
-  wire  [29:0] io_tl_f_0_b_bits_address;
-  wire  [3:0] io_tl_f_0_b_bits_mask;
-  wire  [31:0] io_tl_f_0_b_bits_data;
-
-  // Not used
-  wire  io_tl_f_0_c_ready;
-  wire  io_tl_f_0_c_valid = 1'b0;
-  wire  [2:0] io_tl_f_0_c_bits_opcode = 3'b0;
-  wire  [2:0] io_tl_f_0_c_bits_param = 3'b0;
-  wire  [2:0] io_tl_f_0_c_bits_size = 3'd2;
-  wire  [1:0] io_tl_f_0_c_bits_source = 2'b0;
-  wire  [29:0] io_tl_f_0_c_bits_address = 30'b0;
-  wire  [31:0] io_tl_f_0_c_bits_data = 32'b0;
-  wire  io_tl_f_0_c_bits_error = 1'b0;
-
-  // Not used
-  wire  io_tl_f_0_e_ready;
-  wire  io_tl_f_0_e_valid = 1'b0;
-  wire  io_tl_f_0_e_bits_sink = 1'b0;
-
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
@@ -209,24 +162,6 @@ module sirv_flash_qspi_top(
   wire [29:0] io_in_0_a_bits_address;
   wire  io_in_0_a_bits_mask;
   wire [7:0] io_in_0_a_bits_data;
-  wire  io_in_0_b_ready;
-  wire  io_in_0_b_valid;
-  wire [2:0] io_in_0_b_bits_opcode;
-  wire [1:0] io_in_0_b_bits_param;
-  wire [2:0] io_in_0_b_bits_size;
-  wire [1:0] io_in_0_b_bits_source;
-  wire [29:0] io_in_0_b_bits_address;
-  wire  io_in_0_b_bits_mask;
-  wire [7:0] io_in_0_b_bits_data;
-  wire  io_in_0_c_ready;
-  wire  io_in_0_c_valid;
-  wire [2:0] io_in_0_c_bits_opcode;
-  wire [2:0] io_in_0_c_bits_param;
-  wire [2:0] io_in_0_c_bits_size;
-  wire [1:0] io_in_0_c_bits_source;
-  wire [29:0] io_in_0_c_bits_address;
-  wire [7:0] io_in_0_c_bits_data;
-  wire  io_in_0_c_bits_error;
   wire  io_in_0_d_ready;
   wire  io_in_0_d_valid;
   wire [2:0] io_in_0_d_bits_opcode;
@@ -237,9 +172,6 @@ module sirv_flash_qspi_top(
   wire  io_in_0_d_bits_addr_lo;
   wire [7:0] io_in_0_d_bits_data;
   wire  io_in_0_d_bits_error;
-  wire  io_in_0_e_ready;
-  wire  io_in_0_e_valid;
-  wire  io_in_0_e_bits_sink;
 
   wire  io_out_0_a_ready;
   wire  io_out_0_a_valid;
@@ -250,24 +182,6 @@ module sirv_flash_qspi_top(
   wire [29:0] io_out_0_a_bits_address;
   wire  io_out_0_a_bits_mask;
   wire [7:0] io_out_0_a_bits_data;
-  wire  io_out_0_b_ready;
-  wire  io_out_0_b_valid;
-  wire [2:0] io_out_0_b_bits_opcode;
-  wire [1:0] io_out_0_b_bits_param;
-  wire [2:0] io_out_0_b_bits_size;
-  wire [6:0] io_out_0_b_bits_source;
-  wire [29:0] io_out_0_b_bits_address;
-  wire  io_out_0_b_bits_mask;
-  wire [7:0] io_out_0_b_bits_data;
-  wire  io_out_0_c_ready;
-  wire  io_out_0_c_valid;
-  wire [2:0] io_out_0_c_bits_opcode;
-  wire [2:0] io_out_0_c_bits_param;
-  wire [2:0] io_out_0_c_bits_size;
-  wire [6:0] io_out_0_c_bits_source;
-  wire [29:0] io_out_0_c_bits_address;
-  wire [7:0] io_out_0_c_bits_data;
-  wire  io_out_0_c_bits_error;
   wire  io_out_0_d_ready;
   wire  io_out_0_d_valid;
   wire [2:0] io_out_0_d_bits_opcode;
@@ -278,9 +192,6 @@ module sirv_flash_qspi_top(
   wire  io_out_0_d_bits_addr_lo;
   wire [7:0] io_out_0_d_bits_data;
   wire  io_out_0_d_bits_error;
-  wire  io_out_0_e_ready;
-  wire  io_out_0_e_valid;
-  wire  io_out_0_e_bits_sink;
 
 
   sirv_tlwidthwidget_qspi qspi_TLWidthWidget (
@@ -295,24 +206,6 @@ module sirv_flash_qspi_top(
     .io_in_0_a_bits_address(io_tl_f_0_a_bits_address),
     .io_in_0_a_bits_mask(io_tl_f_0_a_bits_mask),
     .io_in_0_a_bits_data(io_tl_f_0_a_bits_data),
-    .io_in_0_b_ready(io_tl_f_0_b_ready),
-    .io_in_0_b_valid(io_tl_f_0_b_valid),
-    .io_in_0_b_bits_opcode(io_tl_f_0_b_bits_opcode),
-    .io_in_0_b_bits_param(io_tl_f_0_b_bits_param),
-    .io_in_0_b_bits_size(io_tl_f_0_b_bits_size),
-    .io_in_0_b_bits_source(io_tl_f_0_b_bits_source),
-    .io_in_0_b_bits_address(io_tl_f_0_b_bits_address),
-    .io_in_0_b_bits_mask(io_tl_f_0_b_bits_mask),
-    .io_in_0_b_bits_data(io_tl_f_0_b_bits_data),
-    .io_in_0_c_ready(io_tl_f_0_c_ready),
-    .io_in_0_c_valid(io_tl_f_0_c_valid),
-    .io_in_0_c_bits_opcode(io_tl_f_0_c_bits_opcode),
-    .io_in_0_c_bits_param(io_tl_f_0_c_bits_param),
-    .io_in_0_c_bits_size(io_tl_f_0_c_bits_size),
-    .io_in_0_c_bits_source(io_tl_f_0_c_bits_source),
-    .io_in_0_c_bits_address(io_tl_f_0_c_bits_address),
-    .io_in_0_c_bits_data(io_tl_f_0_c_bits_data),
-    .io_in_0_c_bits_error(io_tl_f_0_c_bits_error),
     .io_in_0_d_ready(io_tl_f_0_d_ready),
     .io_in_0_d_valid(io_tl_f_0_d_valid),
     .io_in_0_d_bits_opcode(io_tl_f_0_d_bits_opcode),
@@ -323,9 +216,6 @@ module sirv_flash_qspi_top(
     .io_in_0_d_bits_addr_lo(io_tl_f_0_d_bits_addr_lo),
     .io_in_0_d_bits_data(io_tl_f_0_d_bits_data),
     .io_in_0_d_bits_error(io_tl_f_0_d_bits_error),
-    .io_in_0_e_ready(io_tl_f_0_e_ready),
-    .io_in_0_e_valid(io_tl_f_0_e_valid),
-    .io_in_0_e_bits_sink(io_tl_f_0_e_bits_sink),
 
     .io_out_0_a_ready(io_in_0_a_ready),
     .io_out_0_a_valid(io_in_0_a_valid),
@@ -336,24 +226,6 @@ module sirv_flash_qspi_top(
     .io_out_0_a_bits_address(io_in_0_a_bits_address),
     .io_out_0_a_bits_mask(io_in_0_a_bits_mask),
     .io_out_0_a_bits_data(io_in_0_a_bits_data),
-    .io_out_0_b_ready(io_in_0_b_ready),
-    .io_out_0_b_valid(io_in_0_b_valid),
-    .io_out_0_b_bits_opcode(io_in_0_b_bits_opcode),
-    .io_out_0_b_bits_param(io_in_0_b_bits_param),
-    .io_out_0_b_bits_size(io_in_0_b_bits_size),
-    .io_out_0_b_bits_source(io_in_0_b_bits_source),
-    .io_out_0_b_bits_address(io_in_0_b_bits_address),
-    .io_out_0_b_bits_mask(io_in_0_b_bits_mask),
-    .io_out_0_b_bits_data(io_in_0_b_bits_data),
-    .io_out_0_c_ready(io_in_0_c_ready),
-    .io_out_0_c_valid(io_in_0_c_valid),
-    .io_out_0_c_bits_opcode(io_in_0_c_bits_opcode),
-    .io_out_0_c_bits_param(io_in_0_c_bits_param),
-    .io_out_0_c_bits_size(io_in_0_c_bits_size),
-    .io_out_0_c_bits_source(io_in_0_c_bits_source),
-    .io_out_0_c_bits_address(io_in_0_c_bits_address),
-    .io_out_0_c_bits_data(io_in_0_c_bits_data),
-    .io_out_0_c_bits_error(io_in_0_c_bits_error),
     .io_out_0_d_ready(io_in_0_d_ready),
     .io_out_0_d_valid(io_in_0_d_valid),
     .io_out_0_d_bits_opcode(io_in_0_d_bits_opcode),
@@ -363,10 +235,7 @@ module sirv_flash_qspi_top(
     .io_out_0_d_bits_sink(io_in_0_d_bits_sink),
     .io_out_0_d_bits_addr_lo(io_in_0_d_bits_addr_lo),
     .io_out_0_d_bits_data(io_in_0_d_bits_data),
-    .io_out_0_d_bits_error(io_in_0_d_bits_error),
-    .io_out_0_e_ready(io_in_0_e_ready),
-    .io_out_0_e_valid(io_in_0_e_valid),
-    .io_out_0_e_bits_sink(io_in_0_e_bits_sink)
+    .io_out_0_d_bits_error(io_in_0_d_bits_error)
   );
 
   sirv_tlfragmenter_qspi_1 qspi_TLFragmenter_1 (
@@ -381,24 +250,6 @@ module sirv_flash_qspi_top(
     .io_in_0_a_bits_address(io_in_0_a_bits_address),
     .io_in_0_a_bits_mask(io_in_0_a_bits_mask),
     .io_in_0_a_bits_data(io_in_0_a_bits_data),
-    .io_in_0_b_ready(io_in_0_b_ready),
-    .io_in_0_b_valid(io_in_0_b_valid),
-    .io_in_0_b_bits_opcode(io_in_0_b_bits_opcode),
-    .io_in_0_b_bits_param(io_in_0_b_bits_param),
-    .io_in_0_b_bits_size(io_in_0_b_bits_size),
-    .io_in_0_b_bits_source(io_in_0_b_bits_source),
-    .io_in_0_b_bits_address(io_in_0_b_bits_address),
-    .io_in_0_b_bits_mask(io_in_0_b_bits_mask),
-    .io_in_0_b_bits_data(io_in_0_b_bits_data),
-    .io_in_0_c_ready(io_in_0_c_ready),
-    .io_in_0_c_valid(io_in_0_c_valid),
-    .io_in_0_c_bits_opcode(io_in_0_c_bits_opcode),
-    .io_in_0_c_bits_param(io_in_0_c_bits_param),
-    .io_in_0_c_bits_size(io_in_0_c_bits_size),
-    .io_in_0_c_bits_source(io_in_0_c_bits_source),
-    .io_in_0_c_bits_address(io_in_0_c_bits_address),
-    .io_in_0_c_bits_data(io_in_0_c_bits_data),
-    .io_in_0_c_bits_error(io_in_0_c_bits_error),
     .io_in_0_d_ready(io_in_0_d_ready),
     .io_in_0_d_valid(io_in_0_d_valid),
     .io_in_0_d_bits_opcode(io_in_0_d_bits_opcode),
@@ -409,9 +260,6 @@ module sirv_flash_qspi_top(
     .io_in_0_d_bits_addr_lo(io_in_0_d_bits_addr_lo),
     .io_in_0_d_bits_data(io_in_0_d_bits_data),
     .io_in_0_d_bits_error(io_in_0_d_bits_error),
-    .io_in_0_e_ready(io_in_0_e_ready),
-    .io_in_0_e_valid(io_in_0_e_valid),
-    .io_in_0_e_bits_sink(io_in_0_e_bits_sink),
     .io_out_0_a_ready(io_out_0_a_ready),
     .io_out_0_a_valid(io_out_0_a_valid),
     .io_out_0_a_bits_opcode(io_out_0_a_bits_opcode),
@@ -421,24 +269,6 @@ module sirv_flash_qspi_top(
     .io_out_0_a_bits_address(io_out_0_a_bits_address),
     .io_out_0_a_bits_mask(io_out_0_a_bits_mask),
     .io_out_0_a_bits_data(io_out_0_a_bits_data),
-    .io_out_0_b_ready(io_out_0_b_ready),
-    .io_out_0_b_valid(io_out_0_b_valid),
-    .io_out_0_b_bits_opcode(io_out_0_b_bits_opcode),
-    .io_out_0_b_bits_param(io_out_0_b_bits_param),
-    .io_out_0_b_bits_size(io_out_0_b_bits_size),
-    .io_out_0_b_bits_source(io_out_0_b_bits_source),
-    .io_out_0_b_bits_address(io_out_0_b_bits_address),
-    .io_out_0_b_bits_mask(io_out_0_b_bits_mask),
-    .io_out_0_b_bits_data(io_out_0_b_bits_data),
-    .io_out_0_c_ready(io_out_0_c_ready),
-    .io_out_0_c_valid(io_out_0_c_valid),
-    .io_out_0_c_bits_opcode(io_out_0_c_bits_opcode),
-    .io_out_0_c_bits_param(io_out_0_c_bits_param),
-    .io_out_0_c_bits_size(io_out_0_c_bits_size),
-    .io_out_0_c_bits_source(io_out_0_c_bits_source),
-    .io_out_0_c_bits_address(io_out_0_c_bits_address),
-    .io_out_0_c_bits_data(io_out_0_c_bits_data),
-    .io_out_0_c_bits_error(io_out_0_c_bits_error),
     .io_out_0_d_ready(io_out_0_d_ready),
     .io_out_0_d_valid(io_out_0_d_valid),
     .io_out_0_d_bits_opcode(io_out_0_d_bits_opcode),
@@ -448,10 +278,7 @@ module sirv_flash_qspi_top(
     .io_out_0_d_bits_sink(io_out_0_d_bits_sink),
     .io_out_0_d_bits_addr_lo(io_out_0_d_bits_addr_lo),
     .io_out_0_d_bits_data(io_out_0_d_bits_data),
-    .io_out_0_d_bits_error(io_out_0_d_bits_error),
-    .io_out_0_e_ready(io_out_0_e_ready),
-    .io_out_0_e_valid(io_out_0_e_valid),
-    .io_out_0_e_bits_sink(io_out_0_e_bits_sink)
+    .io_out_0_d_bits_error(io_out_0_d_bits_error)
   );
 sirv_flash_qspi u_sirv_flash_qspi(
   .clock                            (clk                              ),
@@ -466,24 +293,6 @@ sirv_flash_qspi u_sirv_flash_qspi(
   .io_tl_r_0_a_bits_address           (io_tl_r_0_a_bits_address           ),
   .io_tl_r_0_a_bits_mask              (io_tl_r_0_a_bits_mask              ),
   .io_tl_r_0_a_bits_data              (io_tl_r_0_a_bits_data              ),
-  .io_tl_r_0_b_ready                  (io_tl_r_0_b_ready                  ),
-  .io_tl_r_0_b_valid                  (io_tl_r_0_b_valid                  ),
-  .io_tl_r_0_b_bits_opcode            (io_tl_r_0_b_bits_opcode            ),
-  .io_tl_r_0_b_bits_param             (io_tl_r_0_b_bits_param             ),
-  .io_tl_r_0_b_bits_size              (io_tl_r_0_b_bits_size              ),
-  .io_tl_r_0_b_bits_source            (io_tl_r_0_b_bits_source            ),
-  .io_tl_r_0_b_bits_address           (io_tl_r_0_b_bits_address           ),
-  .io_tl_r_0_b_bits_mask              (io_tl_r_0_b_bits_mask              ),
-  .io_tl_r_0_b_bits_data              (io_tl_r_0_b_bits_data              ),
-  .io_tl_r_0_c_ready                  (io_tl_r_0_c_ready                  ),
-  .io_tl_r_0_c_valid                  (io_tl_r_0_c_valid                  ),
-  .io_tl_r_0_c_bits_opcode            (io_tl_r_0_c_bits_opcode            ),
-  .io_tl_r_0_c_bits_param             (io_tl_r_0_c_bits_param             ),
-  .io_tl_r_0_c_bits_size              (io_tl_r_0_c_bits_size              ),
-  .io_tl_r_0_c_bits_source            (io_tl_r_0_c_bits_source            ),
-  .io_tl_r_0_c_bits_address           (io_tl_r_0_c_bits_address           ),
-  .io_tl_r_0_c_bits_data              (io_tl_r_0_c_bits_data              ),
-  .io_tl_r_0_c_bits_error             (io_tl_r_0_c_bits_error             ),
   .io_tl_r_0_d_ready                  (io_tl_r_0_d_ready                  ),
   .io_tl_r_0_d_valid                  (io_tl_r_0_d_valid                  ),
   .io_tl_r_0_d_bits_opcode            (io_tl_r_0_d_bits_opcode            ),
@@ -494,9 +303,6 @@ sirv_flash_qspi u_sirv_flash_qspi(
   .io_tl_r_0_d_bits_addr_lo           (io_tl_r_0_d_bits_addr_lo           ),
   .io_tl_r_0_d_bits_data              (io_tl_r_0_d_bits_data              ),
   .io_tl_r_0_d_bits_error             (io_tl_r_0_d_bits_error             ),
-  .io_tl_r_0_e_ready                  (io_tl_r_0_e_ready                  ),
-  .io_tl_r_0_e_valid                  (io_tl_r_0_e_valid                  ),
-  .io_tl_r_0_e_bits_sink              (io_tl_r_0_e_bits_sink              ),
 
   .io_tl_f_0_a_ready                  (io_out_0_a_ready                  ),
   .io_tl_f_0_a_valid                  (io_out_0_a_valid                  ),
@@ -507,24 +313,6 @@ sirv_flash_qspi u_sirv_flash_qspi(
   .io_tl_f_0_a_bits_address           (io_out_0_a_bits_address           ),
   .io_tl_f_0_a_bits_mask              (io_out_0_a_bits_mask              ),
   .io_tl_f_0_a_bits_data              (io_out_0_a_bits_data              ),
-  .io_tl_f_0_b_ready                  (io_out_0_b_ready                  ),
-  .io_tl_f_0_b_valid                  (io_out_0_b_valid                  ),
-  .io_tl_f_0_b_bits_opcode            (io_out_0_b_bits_opcode            ),
-  .io_tl_f_0_b_bits_param             (io_out_0_b_bits_param             ),
-  .io_tl_f_0_b_bits_size              (io_out_0_b_bits_size              ),
-  .io_tl_f_0_b_bits_source            (io_out_0_b_bits_source            ),
-  .io_tl_f_0_b_bits_address           (io_out_0_b_bits_address           ),
-  .io_tl_f_0_b_bits_mask              (io_out_0_b_bits_mask              ),
-  .io_tl_f_0_b_bits_data              (io_out_0_b_bits_data              ),
-  .io_tl_f_0_c_ready                  (io_out_0_c_ready                  ),
-  .io_tl_f_0_c_valid                  (io_out_0_c_valid                  ),
-  .io_tl_f_0_c_bits_opcode            (io_out_0_c_bits_opcode            ),
-  .io_tl_f_0_c_bits_param             (io_out_0_c_bits_param             ),
-  .io_tl_f_0_c_bits_size              (io_out_0_c_bits_size              ),
-  .io_tl_f_0_c_bits_source            (io_out_0_c_bits_source            ),
-  .io_tl_f_0_c_bits_address           (io_out_0_c_bits_address           ),
-  .io_tl_f_0_c_bits_data              (io_out_0_c_bits_data              ),
-  .io_tl_f_0_c_bits_error             (io_out_0_c_bits_error             ),
   .io_tl_f_0_d_ready                  (io_out_0_d_ready                  ),
   .io_tl_f_0_d_valid                  (io_out_0_d_valid                  ),
   .io_tl_f_0_d_bits_opcode            (io_out_0_d_bits_opcode            ),
@@ -535,9 +323,6 @@ sirv_flash_qspi u_sirv_flash_qspi(
   .io_tl_f_0_d_bits_addr_lo           (io_out_0_d_bits_addr_lo           ),
   .io_tl_f_0_d_bits_data              (io_out_0_d_bits_data              ),
   .io_tl_f_0_d_bits_error             (io_out_0_d_bits_error             ),
-  .io_tl_f_0_e_ready                  (io_out_0_e_ready                  ),
-  .io_tl_f_0_e_valid                  (io_out_0_e_valid                  ),
-  .io_tl_f_0_e_bits_sink              (io_out_0_e_bits_sink              ),
 
 
   .io_port_sck       (io_port_sck    ),

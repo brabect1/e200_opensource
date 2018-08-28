@@ -239,8 +239,11 @@ handle_exception:                                                       \
 reset_vector:                                                           \
         /* Tomas B. Change QSPI0 settings: Begin */                     \
         li t5,0x10014000;                                               \
-        sw x0,40(t5);                                                   \
-        sw x0,44(t5);                                                   \
+        sw x0,40(t5);  /* Delay0 */                                     \
+        sw x0,44(t5);  /* Delay1 */                                     \
+        /* default format + fast QUAD read (6Bh) + QUAD data proto */   \
+        li t6,0x006b2007;                                               \
+        sw t6,100(t5); /* Flash fmt */                                  \
         /* Tomas B. Change QSPI0 settings: End */                       \
         /* Bob Initialize t5 and t6 here: Begin */                       \
         mv t5, x0;                                                  \

@@ -18,6 +18,7 @@
 
    2018, Aug, Tomas Brabec
    - Code cleanup (unused nets, transitive assignments, constant assignments).
+   - Removed unused TileLink channels (B,C,E).
 
  */                                                                      
                                                                          
@@ -51,24 +52,6 @@ module sirv_flash_qspi(
   input  [28:0] io_tl_r_0_a_bits_address,
   input  [3:0] io_tl_r_0_a_bits_mask,
   input  [31:0] io_tl_r_0_a_bits_data,
-  input   io_tl_r_0_b_ready,
-  output  io_tl_r_0_b_valid,
-  output [2:0] io_tl_r_0_b_bits_opcode,
-  output [1:0] io_tl_r_0_b_bits_param,
-  output [2:0] io_tl_r_0_b_bits_size,
-  output [4:0] io_tl_r_0_b_bits_source,
-  output [28:0] io_tl_r_0_b_bits_address,
-  output [3:0] io_tl_r_0_b_bits_mask,
-  output [31:0] io_tl_r_0_b_bits_data,
-  output  io_tl_r_0_c_ready,
-  input   io_tl_r_0_c_valid,
-  input  [2:0] io_tl_r_0_c_bits_opcode,
-  input  [2:0] io_tl_r_0_c_bits_param,
-  input  [2:0] io_tl_r_0_c_bits_size,
-  input  [4:0] io_tl_r_0_c_bits_source,
-  input  [28:0] io_tl_r_0_c_bits_address,
-  input  [31:0] io_tl_r_0_c_bits_data,
-  input   io_tl_r_0_c_bits_error,
   input   io_tl_r_0_d_ready,
   output  io_tl_r_0_d_valid,
   output [2:0] io_tl_r_0_d_bits_opcode,
@@ -79,9 +62,6 @@ module sirv_flash_qspi(
   output [1:0] io_tl_r_0_d_bits_addr_lo,
   output [31:0] io_tl_r_0_d_bits_data,
   output  io_tl_r_0_d_bits_error,
-  output  io_tl_r_0_e_ready,
-  input   io_tl_r_0_e_valid,
-  input   io_tl_r_0_e_bits_sink,
   output  io_tl_f_0_a_ready,
   input   io_tl_f_0_a_valid,
   input  [2:0] io_tl_f_0_a_bits_opcode,
@@ -91,24 +71,6 @@ module sirv_flash_qspi(
   input  [29:0] io_tl_f_0_a_bits_address,
   input   io_tl_f_0_a_bits_mask,
   input  [7:0] io_tl_f_0_a_bits_data,
-  input   io_tl_f_0_b_ready,
-  output  io_tl_f_0_b_valid,
-  output [2:0] io_tl_f_0_b_bits_opcode,
-  output [1:0] io_tl_f_0_b_bits_param,
-  output [2:0] io_tl_f_0_b_bits_size,
-  output [6:0] io_tl_f_0_b_bits_source,
-  output [29:0] io_tl_f_0_b_bits_address,
-  output  io_tl_f_0_b_bits_mask,
-  output [7:0] io_tl_f_0_b_bits_data,
-  output  io_tl_f_0_c_ready,
-  input   io_tl_f_0_c_valid,
-  input  [2:0] io_tl_f_0_c_bits_opcode,
-  input  [2:0] io_tl_f_0_c_bits_param,
-  input  [2:0] io_tl_f_0_c_bits_size,
-  input  [6:0] io_tl_f_0_c_bits_source,
-  input  [29:0] io_tl_f_0_c_bits_address,
-  input  [7:0] io_tl_f_0_c_bits_data,
-  input   io_tl_f_0_c_bits_error,
   input   io_tl_f_0_d_ready,
   output  io_tl_f_0_d_valid,
   output [2:0] io_tl_f_0_d_bits_opcode,
@@ -118,10 +80,7 @@ module sirv_flash_qspi(
   output  io_tl_f_0_d_bits_sink,
   output  io_tl_f_0_d_bits_addr_lo,
   output [7:0] io_tl_f_0_d_bits_data,
-  output  io_tl_f_0_d_bits_error,
-  output  io_tl_f_0_e_ready,
-  input   io_tl_f_0_e_valid,
-  input   io_tl_f_0_e_bits_sink
+  output  io_tl_f_0_d_bits_error
 );
   reg [1:0] ctrl_fmt_proto;
   reg  ctrl_fmt_endian;
@@ -200,13 +159,9 @@ module sirv_flash_qspi(
   wire  arb_io_outer_cs_set;
   wire  arb_io_outer_cs_clear;
   wire  arb_io_outer_cs_hold;
-  reg [2:0] a_opcode;
-  reg [2:0] a_param;
   reg [2:0] a_size;
   reg [6:0] a_source;
   reg [29:0] a_address;
-  reg  a_mask;
-  reg [7:0] a_data;
   reg [1:0] insn_cmd_proto;
   reg [7:0] insn_cmd_code;
   reg  insn_cmd_en;
@@ -219,21 +174,21 @@ module sirv_flash_qspi(
   wire  T_2046;
   wire [9:0] T_2050;
   wire  T_2191;
-  wire  T_2200;
-  wire  T_2209;
-  wire  T_2218;
-  wire  T_2227;
-  wire  T_2236;
-  wire  T_2245;
-  wire  T_2254;
-  wire  T_2263;
-  wire  T_2272;
-  wire  T_2281;
-  wire  T_2290;
-  wire  T_2299;
-  wire  T_2308;
-  wire  T_2317;
-  wire  T_2326;
+//  wire  T_2200;
+//  wire  T_2209;
+//  wire  T_2218;
+//  wire  T_2227;
+//  wire  T_2236;
+//  wire  T_2245;
+//  wire  T_2254;
+//  wire  T_2263;
+//  wire  T_2272;
+//  wire  T_2281;
+//  wire  T_2290;
+//  wire  T_2299;
+//  wire  T_2308;
+//  wire  T_2317;
+//  wire  T_2326;
   wire [31:0] T_2553;
   wire  T_2623;
   wire  T_2663;
@@ -241,22 +196,22 @@ module sirv_flash_qspi(
   wire  T_3103;
   wire  T_3183;
   wire  T_3303;
-  wire  T_3978;
-  wire  T_3982;
-  wire  T_3993;
-  wire  T_3997;
-  wire  T_4001;
-  wire  T_4014;
-  wire  T_4019;
-  wire  T_4036;
-  wire  T_4046;
-  wire  T_4052;
-  wire  T_4058;
-  wire  T_4062;
-  wire  T_4072;
-  wire  T_4076;
-  wire  T_4093;
-  wire  T_4098;
+//  wire  T_3978;
+//  wire  T_3982;
+//  wire  T_3993;
+//  wire  T_3997;
+//  wire  T_4001;
+//  wire  T_4014;
+//  wire  T_4019;
+//  wire  T_4036;
+//  wire  T_4046;
+//  wire  T_4052;
+//  wire  T_4058;
+//  wire  T_4062;
+//  wire  T_4072;
+//  wire  T_4076;
+//  wire  T_4093;
+//  wire  T_4098;
   wire [4:0] T_4794;
   wire  T_4811;
   wire  T_4814;
@@ -358,8 +313,8 @@ module sirv_flash_qspi(
     .io_ctrl_fmt_endian(ctrl_fmt_endian),
     .io_addr_ready(flash_io_addr_ready),
     .io_addr_valid(io_tl_f_0_a_valid),
-    .io_addr_bits_next(({{3'd0}, io_tl_f_0_a_bits_address[28:0]})),
-    .io_addr_bits_hold(({{3'd0}, a_address[28:0]})),
+    .io_addr_bits_next({3'd0, io_tl_f_0_a_bits_address[28:0]}),
+    .io_addr_bits_hold({3'd0, a_address[28:0]}),
     .io_data_ready(io_tl_f_0_d_ready),
     .io_data_valid(flash_io_data_valid),
     .io_data_bits(flash_io_data_bits),
@@ -436,15 +391,6 @@ module sirv_flash_qspi(
   assign io_port_cs_0 = mac_io_port_cs_0;
   assign io_tl_i_0_0 = ((fifo_io_ip_txwm & ie_txwm) | (fifo_io_ip_rxwm & ie_rxwm));
   assign io_tl_r_0_a_ready = ((io_tl_r_0_d_ready & T_4814) & T_4811);
-  assign io_tl_r_0_b_valid = 1'h0;
-  assign io_tl_r_0_b_bits_opcode = 3'b0;
-  assign io_tl_r_0_b_bits_param = 2'b0;
-  assign io_tl_r_0_b_bits_size = 3'b0;
-  assign io_tl_r_0_b_bits_source = 5'b0;
-  assign io_tl_r_0_b_bits_address = 29'b0;
-  assign io_tl_r_0_b_bits_mask = 4'b0;
-  assign io_tl_r_0_b_bits_data = 32'b0;
-  assign io_tl_r_0_c_ready = 1'h1;
   assign io_tl_r_0_d_valid = (T_4816 & T_4814);
   assign io_tl_r_0_d_bits_opcode = {{2'd0}, T_2046};
   assign io_tl_r_0_d_bits_param = 2'h0;
@@ -452,19 +398,10 @@ module sirv_flash_qspi(
   assign io_tl_r_0_d_bits_source = T_2050[7:3];
   assign io_tl_r_0_d_bits_sink = 1'h0;
   assign io_tl_r_0_d_bits_addr_lo = T_2050[9:8];
-  assign io_tl_r_0_d_bits_data = ((5'h1f == T_4794 ? 1'h1 : (5'h1e == T_4794 ? 1'h1 : (5'h1d == T_4794 ? T_2245 : (5'h1c == T_4794 ? T_2272 : (5'h1b == T_4794 ? 1'h1 : (5'h1a == T_4794 ? 1'h1 : (5'h19 == T_4794 ? T_2227 : (5'h18 == T_4794 ? T_2218 : (5'h17 == T_4794 ? 1'h1 : (5'h16 == T_4794 ? 1'h1 : (5'h15 == T_4794 ? T_2281 : (5'h14 == T_4794 ? T_2236 : (5'h13 == T_4794 ? T_2317 : (5'h12 == T_4794 ? T_2290 : (5'h11 == T_4794 ? 1'h1 : (5'h10 == T_4794 ? T_2299 : (5'hf == T_4794 ? 1'h1 : (5'he == T_4794 ? 1'h1 : (5'hd == T_4794 ? 1'h1 : (5'hc == T_4794 ? 1'h1 : (5'hb == T_4794 ? T_2308 : (5'ha == T_4794 ? T_2209 : (5'h9 == T_4794 ? 1'h1 : (5'h8 == T_4794 ? 1'h1 : (5'h7 == T_4794 ? 1'h1 : (5'h6 == T_4794 ? T_2263 : (5'h5 == T_4794 ? T_2200 : (5'h4 == T_4794 ? T_2326 : (5'h3 == T_4794 ? 1'h1 : (5'h2 == T_4794 ? 1'h1 : (5'h1 == T_4794 ? T_2254 : T_2191))))))))))))))))))))))))))))))) ? (5'h1f == T_4794 ? 32'h0 : (5'h1e == T_4794 ? 32'h0 : (5'h1d == T_4794 ? ({{30'd0}, (({{1'd0}, fifo_io_ip_txwm}) | (({{1'd0}, fifo_io_ip_rxwm}) << 1))}) : (5'h1c == T_4794 ? ({{30'd0}, (({{1'd0}, ie_txwm}) | (({{1'd0}, ie_rxwm}) << 1))}) : (5'h1b == T_4794 ? 32'h0 : (5'h1a == T_4794 ? 32'h0 : (5'h19 == T_4794 ? (({{8'd0}, (({{10'd0}, (({{2'd0}, (({{2'd0}, (({{2'd0}, (({{4'd0}, (({{3'd0}, insn_cmd_en}) | (({{1'd0}, insn_addr_len}) << 1))}) | (({{4'd0}, insn_pad_cnt}) << 4))}) | (({{8'd0}, insn_cmd_proto}) << 8))}) | (({{10'd0}, insn_addr_proto}) << 10))}) | (({{12'd0}, insn_data_proto}) << 12))}) | (({{16'd0}, insn_cmd_code}) << 16))}) | (({{24'd0}, insn_pad_code}) << 24)) : (5'h18 == T_4794 ? ({{31'd0}, flash_en}) : (5'h17 == T_4794 ? 32'h0 : (5'h16 == T_4794 ? 32'h0 : (5'h15 == T_4794 ? ({{28'd0}, ctrl_wm_rx}) : (5'h14 == T_4794 ? ({{28'd0}, ctrl_wm_tx}) : (5'h13 == T_4794 ? (({{1'd0}, ({{23'd0}, fifo_io_rx_bits})}) | (({{31'd0}, (fifo_io_rx_valid == 1'h0)}) << 31)) : (5'h12 == T_4794 ? (({{31'd0}, (fifo_io_tx_ready == 1'h0)}) << 31) : (5'h11 == T_4794 ? 32'h0 : (5'h10 == T_4794 ? ({{12'd0}, (({{16'd0}, (({{1'd0}, (({{1'd0}, ctrl_fmt_proto}) | (({{2'd0}, ctrl_fmt_endian}) << 2))}) | (({{3'd0}, ctrl_fmt_iodir}) << 3))}) | (({{16'd0}, ctrl_fmt_len}) << 16))}) : (5'hf == T_4794 ? 32'h0 : (5'he == T_4794 ? 32'h0 : (5'hd == T_4794 ? 32'h0 : (5'hc == T_4794 ? 32'h0 : (5'hb == T_4794 ? ({{8'd0}, (({{16'd0}, ctrl_dla_intercs}) | (({{16'd0}, ctrl_dla_interxfr}) << 16))}) : (5'ha == T_4794 ? ({{8'd0}, (({{16'd0}, ctrl_dla_cssck}) | (({{16'd0}, ctrl_dla_sckcs}) << 16))}) : (5'h9 == T_4794 ? 32'h0 : (5'h8 == T_4794 ? 32'h0 : (5'h7 == T_4794 ? 32'h0 : (5'h6 == T_4794 ? ({{30'd0}, ctrl_cs_mode}) : (5'h5 == T_4794 ? ({{31'd0}, ctrl_cs_dflt_0}) : (5'h4 == T_4794 ? ({{31'd0}, ctrl_cs_id}) : (5'h3 == T_4794 ? 32'h0 : (5'h2 == T_4794 ? 32'h0 : (5'h1 == T_4794 ? ({{30'd0}, (({{1'd0}, ctrl_sck_pha}) | (({{1'd0}, ctrl_sck_pol}) << 1))}) : ({{20'd0}, ctrl_sck_div})))))))))))))))))))))))))))))))) : 32'h0);
+//  assign io_tl_r_0_d_bits_data = ((5'h1f == T_4794 ? 1'h1 : (5'h1e == T_4794 ? 1'h1 : (5'h1d == T_4794 ? T_2245 : (5'h1c == T_4794 ? T_2272 : (5'h1b == T_4794 ? 1'h1 : (5'h1a == T_4794 ? 1'h1 : (5'h19 == T_4794 ? T_2227 : (5'h18 == T_4794 ? T_2218 : (5'h17 == T_4794 ? 1'h1 : (5'h16 == T_4794 ? 1'h1 : (5'h15 == T_4794 ? T_2281 : (5'h14 == T_4794 ? T_2236 : (5'h13 == T_4794 ? T_2317 : (5'h12 == T_4794 ? T_2290 : (5'h11 == T_4794 ? 1'h1 : (5'h10 == T_4794 ? T_2299 : (5'hf == T_4794 ? 1'h1 : (5'he == T_4794 ? 1'h1 : (5'hd == T_4794 ? 1'h1 : (5'hc == T_4794 ? 1'h1 : (5'hb == T_4794 ? T_2308 : (5'ha == T_4794 ? T_2209 : (5'h9 == T_4794 ? 1'h1 : (5'h8 == T_4794 ? 1'h1 : (5'h7 == T_4794 ? 1'h1 : (5'h6 == T_4794 ? T_2263 : (5'h5 == T_4794 ? T_2200 : (5'h4 == T_4794 ? T_2326 : (5'h3 == T_4794 ? 1'h1 : (5'h2 == T_4794 ? 1'h1 : (5'h1 == T_4794 ? T_2254 : T_2191))))))))))))))))))))))))))))))) ? (5'h1f == T_4794 ? 32'h0 : (5'h1e == T_4794 ? 32'h0 : (5'h1d == T_4794 ? ({{30'd0}, (({{1'd0}, fifo_io_ip_txwm}) | (({{1'd0}, fifo_io_ip_rxwm}) << 1))}) : (5'h1c == T_4794 ? ({{30'd0}, (({{1'd0}, ie_txwm}) | (({{1'd0}, ie_rxwm}) << 1))}) : (5'h1b == T_4794 ? 32'h0 : (5'h1a == T_4794 ? 32'h0 : (5'h19 == T_4794 ? (({{8'd0}, (({{10'd0}, (({{2'd0}, (({{2'd0}, (({{2'd0}, (({{4'd0}, (({{3'd0}, insn_cmd_en}) | (({{1'd0}, insn_addr_len}) << 1))}) | (({{4'd0}, insn_pad_cnt}) << 4))}) | (({{8'd0}, insn_cmd_proto}) << 8))}) | (({{10'd0}, insn_addr_proto}) << 10))}) | (({{12'd0}, insn_data_proto}) << 12))}) | (({{16'd0}, insn_cmd_code}) << 16))}) | (({{24'd0}, insn_pad_code}) << 24)) : (5'h18 == T_4794 ? ({{31'd0}, flash_en}) : (5'h17 == T_4794 ? 32'h0 : (5'h16 == T_4794 ? 32'h0 : (5'h15 == T_4794 ? ({{28'd0}, ctrl_wm_rx}) : (5'h14 == T_4794 ? ({{28'd0}, ctrl_wm_tx}) : (5'h13 == T_4794 ? (({{1'd0}, ({{23'd0}, fifo_io_rx_bits})}) | (({{31'd0}, (fifo_io_rx_valid == 1'h0)}) << 31)) : (5'h12 == T_4794 ? (({{31'd0}, (fifo_io_tx_ready == 1'h0)}) << 31) : (5'h11 == T_4794 ? 32'h0 : (5'h10 == T_4794 ? ({{12'd0}, (({{16'd0}, (({{1'd0}, (({{1'd0}, ctrl_fmt_proto}) | (({{2'd0}, ctrl_fmt_endian}) << 2))}) | (({{3'd0}, ctrl_fmt_iodir}) << 3))}) | (({{16'd0}, ctrl_fmt_len}) << 16))}) : (5'hf == T_4794 ? 32'h0 : (5'he == T_4794 ? 32'h0 : (5'hd == T_4794 ? 32'h0 : (5'hc == T_4794 ? 32'h0 : (5'hb == T_4794 ? ({{8'd0}, (({{16'd0}, ctrl_dla_intercs}) | (({{16'd0}, ctrl_dla_interxfr}) << 16))}) : (5'ha == T_4794 ? ({{8'd0}, (({{16'd0}, ctrl_dla_cssck}) | (({{16'd0}, ctrl_dla_sckcs}) << 16))}) : (5'h9 == T_4794 ? 32'h0 : (5'h8 == T_4794 ? 32'h0 : (5'h7 == T_4794 ? 32'h0 : (5'h6 == T_4794 ? ({{30'd0}, ctrl_cs_mode}) : (5'h5 == T_4794 ? ({{31'd0}, ctrl_cs_dflt_0}) : (5'h4 == T_4794 ? ({{31'd0}, ctrl_cs_id}) : (5'h3 == T_4794 ? 32'h0 : (5'h2 == T_4794 ? 32'h0 : (5'h1 == T_4794 ? ({{30'd0}, (({{1'd0}, ctrl_sck_pha}) | (({{1'd0}, ctrl_sck_pol}) << 1))}) : ({{20'd0}, ctrl_sck_div})))))))))))))))))))))))))))))))) : 32'h0);
+  assign io_tl_r_0_d_bits_data = T_2191 ? (5'h1f == T_4794 ? 32'h0 : (5'h1e == T_4794 ? 32'h0 : (5'h1d == T_4794 ? ({{30'd0}, (({{1'd0}, fifo_io_ip_txwm}) | (({{1'd0}, fifo_io_ip_rxwm}) << 1))}) : (5'h1c == T_4794 ? ({{30'd0}, (({{1'd0}, ie_txwm}) | (({{1'd0}, ie_rxwm}) << 1))}) : (5'h1b == T_4794 ? 32'h0 : (5'h1a == T_4794 ? 32'h0 : (5'h19 == T_4794 ? (({{8'd0}, (({{10'd0}, (({{2'd0}, (({{2'd0}, (({{2'd0}, (({{4'd0}, (({{3'd0}, insn_cmd_en}) | (({{1'd0}, insn_addr_len}) << 1))}) | (({{4'd0}, insn_pad_cnt}) << 4))}) | (({{8'd0}, insn_cmd_proto}) << 8))}) | (({{10'd0}, insn_addr_proto}) << 10))}) | (({{12'd0}, insn_data_proto}) << 12))}) | (({{16'd0}, insn_cmd_code}) << 16))}) | (({{24'd0}, insn_pad_code}) << 24)) : (5'h18 == T_4794 ? ({{31'd0}, flash_en}) : (5'h17 == T_4794 ? 32'h0 : (5'h16 == T_4794 ? 32'h0 : (5'h15 == T_4794 ? ({{28'd0}, ctrl_wm_rx}) : (5'h14 == T_4794 ? ({{28'd0}, ctrl_wm_tx}) : (5'h13 == T_4794 ? (({{1'd0}, ({{23'd0}, fifo_io_rx_bits})}) | (({{31'd0}, (fifo_io_rx_valid == 1'h0)}) << 31)) : (5'h12 == T_4794 ? (({{31'd0}, (fifo_io_tx_ready == 1'h0)}) << 31) : (5'h11 == T_4794 ? 32'h0 : (5'h10 == T_4794 ? ({{12'd0}, (({{16'd0}, (({{1'd0}, (({{1'd0}, ctrl_fmt_proto}) | (({{2'd0}, ctrl_fmt_endian}) << 2))}) | (({{3'd0}, ctrl_fmt_iodir}) << 3))}) | (({{16'd0}, ctrl_fmt_len}) << 16))}) : (5'hf == T_4794 ? 32'h0 : (5'he == T_4794 ? 32'h0 : (5'hd == T_4794 ? 32'h0 : (5'hc == T_4794 ? 32'h0 : (5'hb == T_4794 ? ({{8'd0}, (({{16'd0}, ctrl_dla_intercs}) | (({{16'd0}, ctrl_dla_interxfr}) << 16))}) : (5'ha == T_4794 ? ({{8'd0}, (({{16'd0}, ctrl_dla_cssck}) | (({{16'd0}, ctrl_dla_sckcs}) << 16))}) : (5'h9 == T_4794 ? 32'h0 : (5'h8 == T_4794 ? 32'h0 : (5'h7 == T_4794 ? 32'h0 : (5'h6 == T_4794 ? ({{30'd0}, ctrl_cs_mode}) : (5'h5 == T_4794 ? ({{31'd0}, ctrl_cs_dflt_0}) : (5'h4 == T_4794 ? ({{31'd0}, ctrl_cs_id}) : (5'h3 == T_4794 ? 32'h0 : (5'h2 == T_4794 ? 32'h0 : (5'h1 == T_4794 ? ({{30'd0}, (({{1'd0}, ctrl_sck_pha}) | (({{1'd0}, ctrl_sck_pol}) << 1))}) : ({{20'd0}, ctrl_sck_div})))))))))))))))))))))))))))))))) : 32'h0;
   assign io_tl_r_0_d_bits_error = 1'h0;
-  assign io_tl_r_0_e_ready = 1'h1;
   assign io_tl_f_0_a_ready = flash_io_addr_ready;
-  assign io_tl_f_0_b_valid = 1'h0;
-  assign io_tl_f_0_b_bits_opcode = 3'b0;
-  assign io_tl_f_0_b_bits_param = 2'b0;
-  assign io_tl_f_0_b_bits_size = 3'b0;
-  assign io_tl_f_0_b_bits_source = 7'b0;
-  assign io_tl_f_0_b_bits_address = 30'b0;
-  assign io_tl_f_0_b_bits_mask = 1'b0;
-  assign io_tl_f_0_b_bits_data = 8'b0;
-  assign io_tl_f_0_c_ready = 1'h1;
   assign io_tl_f_0_d_valid = flash_io_data_valid;
   assign io_tl_f_0_d_bits_opcode = 3'h1;
   assign io_tl_f_0_d_bits_param = 2'h0;
@@ -474,53 +411,56 @@ module sirv_flash_qspi(
   assign io_tl_f_0_d_bits_addr_lo = 1'h0;
   assign io_tl_f_0_d_bits_data = flash_io_data_bits;
   assign io_tl_f_0_d_bits_error = 1'h0;
-  assign io_tl_f_0_e_ready = 1'h1;
   assign T_2046 = io_tl_r_0_a_bits_opcode == 3'h4;
   assign T_2050 = {({io_tl_r_0_a_bits_address[1:0],io_tl_r_0_a_bits_source}),io_tl_r_0_a_bits_size};
-  assign T_2191 = (io_tl_r_0_a_bits_address[11:2] & 10'h3e0) == 10'h0;
-  assign T_2200 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h5) & 10'h3e0) == 10'h0;
-  assign T_2209 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'ha) & 10'h3e0) == 10'h0;
-  assign T_2218 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h18) & 10'h3e0) == 10'h0;
-  assign T_2227 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h19) & 10'h3e0) == 10'h0;
-  assign T_2236 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h14) & 10'h3e0) == 10'h0;
-  assign T_2245 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h1d) & 10'h3e0) == 10'h0;
-  assign T_2254 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h1) & 10'h3e0) == 10'h0;
-  assign T_2263 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h6) & 10'h3e0) == 10'h0;
-  assign T_2272 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h1c) & 10'h3e0) == 10'h0;
-  assign T_2281 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h15) & 10'h3e0) == 10'h0;
-  assign T_2290 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h12) & 10'h3e0) == 10'h0;
-  assign T_2299 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h10) & 10'h3e0) == 10'h0;
-  assign T_2308 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'hb) & 10'h3e0) == 10'h0;
-  assign T_2317 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h13) & 10'h3e0) == 10'h0;
-  assign T_2326 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h4) & 10'h3e0) == 10'h0;
-  assign T_2553 = {({(io_tl_r_0_a_bits_mask[3] ? 8'hff : 8'h0),(io_tl_r_0_a_bits_mask[2] ? 8'hff : 8'h0)}),({(io_tl_r_0_a_bits_mask[1] ? 8'hff : 8'h0),(io_tl_r_0_a_bits_mask[0] ? 8'hff : 8'h0)})};
-  assign T_2623 = (~ T_2553[0]) == 1'h0;
+//  assign T_2191 = (io_tl_r_0_a_bits_address[11:2] & 10'h3e0) == 10'h0;
+  assign T_2191 = io_tl_r_0_a_bits_address[11:7] == 5'h0;
+//  assign T_2200 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h5) & 10'h3e0) == 10'h0;
+//  assign T_2209 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'ha) & 10'h3e0) == 10'h0;
+//  assign T_2218 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h18) & 10'h3e0) == 10'h0;
+//  assign T_2227 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h19) & 10'h3e0) == 10'h0;
+//  assign T_2236 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h14) & 10'h3e0) == 10'h0;
+//  assign T_2245 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h1d) & 10'h3e0) == 10'h0;
+//  assign T_2254 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h1) & 10'h3e0) == 10'h0;
+//  assign T_2263 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h6) & 10'h3e0) == 10'h0;
+//  assign T_2272 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h1c) & 10'h3e0) == 10'h0;
+//  assign T_2281 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h15) & 10'h3e0) == 10'h0;
+//  assign T_2290 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h12) & 10'h3e0) == 10'h0;
+//  assign T_2299 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h10) & 10'h3e0) == 10'h0;
+//  assign T_2308 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'hb) & 10'h3e0) == 10'h0;
+//  assign T_2317 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h13) & 10'h3e0) == 10'h0;
+//  assign T_2326 = ((io_tl_r_0_a_bits_address[11:2] ^ 10'h4) & 10'h3e0) == 10'h0;
+  assign T_2553 = { {8{io_tl_r_0_a_bits_mask[3]}}, {8{io_tl_r_0_a_bits_mask[2]}}, {8{io_tl_r_0_a_bits_mask[1]}}, {8{io_tl_r_0_a_bits_mask[0]}} };
+  assign T_2623 = T_2553[0];
   assign T_2663 = (~ T_2553[7:0]) == 8'h0;
   assign T_2703 = (~ T_2553[23:16]) == 8'h0;
   assign T_3103 = (~ T_2553[3:0]) == 4'h0;
-  assign T_3183 = (~ T_2553[1]) == 1'h0;
+  assign T_3183 = T_2553[1];
   assign T_3303 = (~ T_2553[1:0]) == 2'h0;
-  assign T_3978 = ~T_2191;
-  assign T_3982 = ~T_2254;
-  assign T_3993 = ~T_2326;
-  assign T_3997 = ~T_2200;
-  assign T_4001 = ~T_2263;
-  assign T_4014 = ~T_2209;
-  assign T_4019 = ~T_2308;
-  assign T_4036 = ~T_2299;
-  assign T_4046 = ~T_2290;
-  assign T_4052 = ~T_2317;
-  assign T_4058 = ~T_2236;
-  assign T_4062 = ~T_2281;
-  assign T_4072 = ~T_2218;
-  assign T_4076 = ~T_2227;
-  assign T_4093 = ~T_2272;
-  assign T_4098 = ~T_2245;
-  assign T_4794 = {({({io_tl_r_0_a_bits_address[6],io_tl_r_0_a_bits_address[5]}),io_tl_r_0_a_bits_address[4]}),({io_tl_r_0_a_bits_address[3],io_tl_r_0_a_bits_address[2]})};
-  assign T_4811 = T_2046 ? (5'h1f == T_4794 ? 1'h1 : (5'h1e == T_4794 ? 1'h1 : (5'h1d == T_4794 ? (T_4098 | (1'h1 & 1'h1)) : (5'h1c == T_4794 ? (T_4093 | (1'h1 & 1'h1)) : (5'h1b == T_4794 ? 1'h1 : (5'h1a == T_4794 ? 1'h1 : (5'h19 == T_4794 ? (T_4076 | (((((((1'h1 & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1)) : (5'h18 == T_4794 ? (T_4072 | 1'h1) : (5'h17 == T_4794 ? 1'h1 : (5'h16 == T_4794 ? 1'h1 : (5'h15 == T_4794 ? (T_4062 | 1'h1) : (5'h14 == T_4794 ? (T_4058 | 1'h1) : (5'h13 == T_4794 ? (T_4052 | ((1'h1 & 1'h1) & 1'h1)) : (5'h12 == T_4794 ? (T_4046 | ((1'h1 & 1'h1) & 1'h1)) : (5'h11 == T_4794 ? 1'h1 : (5'h10 == T_4794 ? (T_4036 | (((1'h1 & 1'h1) & 1'h1) & 1'h1)) : (5'hf == T_4794 ? 1'h1 : (5'he == T_4794 ? 1'h1 : (5'hd == T_4794 ? 1'h1 : (5'hc == T_4794 ? 1'h1 : (5'hb == T_4794 ? (T_4019 | (1'h1 & 1'h1)) : (5'ha == T_4794 ? (T_4014 | (1'h1 & 1'h1)) : (5'h9 == T_4794 ? 1'h1 : (5'h8 == T_4794 ? 1'h1 : (5'h7 == T_4794 ? 1'h1 : (5'h6 == T_4794 ? (T_4001 | 1'h1) : (5'h5 == T_4794 ? (T_3997 | 1'h1) : (5'h4 == T_4794 ? (T_3993 | 1'h1) : (5'h3 == T_4794 ? 1'h1 : (5'h2 == T_4794 ? 1'h1 : (5'h1 == T_4794 ? (T_3982 | (1'h1 & 1'h1)) : (T_3978 | 1'h1)))))))))))))))))))))))))))))))) : (5'h1f == T_4794 ? 1'h1 : (5'h1e == T_4794 ? 1'h1 : (5'h1d == T_4794 ? (T_4098 | (1'h1 & 1'h1)) : (5'h1c == T_4794 ? (T_4093 | (1'h1 & 1'h1)) : (5'h1b == T_4794 ? 1'h1 : (5'h1a == T_4794 ? 1'h1 : (5'h19 == T_4794 ? (T_4076 | (((((((1'h1 & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1)) : (5'h18 == T_4794 ? (T_4072 | 1'h1) : (5'h17 == T_4794 ? 1'h1 : (5'h16 == T_4794 ? 1'h1 : (5'h15 == T_4794 ? (T_4062 | 1'h1) : (5'h14 == T_4794 ? (T_4058 | 1'h1) : (5'h13 == T_4794 ? (T_4052 | ((1'h1 & 1'h1) & 1'h1)) : (5'h12 == T_4794 ? (T_4046 | ((1'h1 & 1'h1) & 1'h1)) : (5'h11 == T_4794 ? 1'h1 : (5'h10 == T_4794 ? (T_4036 | (((1'h1 & 1'h1) & 1'h1) & 1'h1)) : (5'hf == T_4794 ? 1'h1 : (5'he == T_4794 ? 1'h1 : (5'hd == T_4794 ? 1'h1 : (5'hc == T_4794 ? 1'h1 : (5'hb == T_4794 ? (T_4019 | (1'h1 & 1'h1)) : (5'ha == T_4794 ? (T_4014 | (1'h1 & 1'h1)) : (5'h9 == T_4794 ? 1'h1 : (5'h8 == T_4794 ? 1'h1 : (5'h7 == T_4794 ? 1'h1 : (5'h6 == T_4794 ? (T_4001 | 1'h1) : (5'h5 == T_4794 ? (T_3997 | 1'h1) : (5'h4 == T_4794 ? (T_3993 | 1'h1) : (5'h3 == T_4794 ? 1'h1 : (5'h2 == T_4794 ? 1'h1 : (5'h1 == T_4794 ? (T_3982 | (1'h1 & 1'h1)) : (T_3978 | 1'h1))))))))))))))))))))))))))))))));
-  assign T_4814 = T_2046 ? (5'h1f == T_4794 ? 1'h1 : (5'h1e == T_4794 ? 1'h1 : (5'h1d == T_4794 ? (T_4098 | (1'h1 & 1'h1)) : (5'h1c == T_4794 ? (T_4093 | (1'h1 & 1'h1)) : (5'h1b == T_4794 ? 1'h1 : (5'h1a == T_4794 ? 1'h1 : (5'h19 == T_4794 ? (T_4076 | (((((((1'h1 & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1)) : (5'h18 == T_4794 ? (T_4072 | 1'h1) : (5'h17 == T_4794 ? 1'h1 : (5'h16 == T_4794 ? 1'h1 : (5'h15 == T_4794 ? (T_4062 | 1'h1) : (5'h14 == T_4794 ? (T_4058 | 1'h1) : (5'h13 == T_4794 ? (T_4052 | ((1'h1 & 1'h1) & 1'h1)) : (5'h12 == T_4794 ? (T_4046 | ((1'h1 & 1'h1) & 1'h1)) : (5'h11 == T_4794 ? 1'h1 : (5'h10 == T_4794 ? (T_4036 | (((1'h1 & 1'h1) & 1'h1) & 1'h1)) : (5'hf == T_4794 ? 1'h1 : (5'he == T_4794 ? 1'h1 : (5'hd == T_4794 ? 1'h1 : (5'hc == T_4794 ? 1'h1 : (5'hb == T_4794 ? (T_4019 | (1'h1 & 1'h1)) : (5'ha == T_4794 ? (T_4014 | (1'h1 & 1'h1)) : (5'h9 == T_4794 ? 1'h1 : (5'h8 == T_4794 ? 1'h1 : (5'h7 == T_4794 ? 1'h1 : (5'h6 == T_4794 ? (T_4001 | 1'h1) : (5'h5 == T_4794 ? (T_3997 | 1'h1) : (5'h4 == T_4794 ? (T_3993 | 1'h1) : (5'h3 == T_4794 ? 1'h1 : (5'h2 == T_4794 ? 1'h1 : (5'h1 == T_4794 ? (T_3982 | (1'h1 & 1'h1)) : (T_3978 | 1'h1)))))))))))))))))))))))))))))))) : (5'h1f == T_4794 ? 1'h1 : (5'h1e == T_4794 ? 1'h1 : (5'h1d == T_4794 ? (T_4098 | (1'h1 & 1'h1)) : (5'h1c == T_4794 ? (T_4093 | (1'h1 & 1'h1)) : (5'h1b == T_4794 ? 1'h1 : (5'h1a == T_4794 ? 1'h1 : (5'h19 == T_4794 ? (T_4076 | (((((((1'h1 & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1)) : (5'h18 == T_4794 ? (T_4072 | 1'h1) : (5'h17 == T_4794 ? 1'h1 : (5'h16 == T_4794 ? 1'h1 : (5'h15 == T_4794 ? (T_4062 | 1'h1) : (5'h14 == T_4794 ? (T_4058 | 1'h1) : (5'h13 == T_4794 ? (T_4052 | ((1'h1 & 1'h1) & 1'h1)) : (5'h12 == T_4794 ? (T_4046 | ((1'h1 & 1'h1) & 1'h1)) : (5'h11 == T_4794 ? 1'h1 : (5'h10 == T_4794 ? (T_4036 | (((1'h1 & 1'h1) & 1'h1) & 1'h1)) : (5'hf == T_4794 ? 1'h1 : (5'he == T_4794 ? 1'h1 : (5'hd == T_4794 ? 1'h1 : (5'hc == T_4794 ? 1'h1 : (5'hb == T_4794 ? (T_4019 | (1'h1 & 1'h1)) : (5'ha == T_4794 ? (T_4014 | (1'h1 & 1'h1)) : (5'h9 == T_4794 ? 1'h1 : (5'h8 == T_4794 ? 1'h1 : (5'h7 == T_4794 ? 1'h1 : (5'h6 == T_4794 ? (T_4001 | 1'h1) : (5'h5 == T_4794 ? (T_3997 | 1'h1) : (5'h4 == T_4794 ? (T_3993 | 1'h1) : (5'h3 == T_4794 ? 1'h1 : (5'h2 == T_4794 ? 1'h1 : (5'h1 == T_4794 ? (T_3982 | (1'h1 & 1'h1)) : (T_3978 | 1'h1))))))))))))))))))))))))))))))));
+//  assign T_3978 = ~T_2191;
+//  assign T_3982 = ~T_2254;
+//  assign T_3993 = ~T_2326;
+//  assign T_3997 = ~T_2200;
+//  assign T_4001 = ~T_2263;
+//  assign T_4014 = ~T_2209;
+//  assign T_4019 = ~T_2308;
+//  assign T_4036 = ~T_2299;
+//  assign T_4046 = ~T_2290;
+//  assign T_4052 = ~T_2317;
+//  assign T_4058 = ~T_2236;
+//  assign T_4062 = ~T_2281;
+//  assign T_4072 = ~T_2218;
+//  assign T_4076 = ~T_2227;
+//  assign T_4093 = ~T_2272;
+//  assign T_4098 = ~T_2245;
+  assign T_4794 = io_tl_r_0_a_bits_address[6:2];
+//  assign T_4811 = T_2046 ? (5'h1f == T_4794 ? 1'h1 : (5'h1e == T_4794 ? 1'h1 : (5'h1d == T_4794 ? (T_4098 | (1'h1 & 1'h1)) : (5'h1c == T_4794 ? (T_4093 | (1'h1 & 1'h1)) : (5'h1b == T_4794 ? 1'h1 : (5'h1a == T_4794 ? 1'h1 : (5'h19 == T_4794 ? (T_4076 | (((((((1'h1 & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1)) : (5'h18 == T_4794 ? (T_4072 | 1'h1) : (5'h17 == T_4794 ? 1'h1 : (5'h16 == T_4794 ? 1'h1 : (5'h15 == T_4794 ? (T_4062 | 1'h1) : (5'h14 == T_4794 ? (T_4058 | 1'h1) : (5'h13 == T_4794 ? (T_4052 | ((1'h1 & 1'h1) & 1'h1)) : (5'h12 == T_4794 ? (T_4046 | ((1'h1 & 1'h1) & 1'h1)) : (5'h11 == T_4794 ? 1'h1 : (5'h10 == T_4794 ? (T_4036 | (((1'h1 & 1'h1) & 1'h1) & 1'h1)) : (5'hf == T_4794 ? 1'h1 : (5'he == T_4794 ? 1'h1 : (5'hd == T_4794 ? 1'h1 : (5'hc == T_4794 ? 1'h1 : (5'hb == T_4794 ? (T_4019 | (1'h1 & 1'h1)) : (5'ha == T_4794 ? (T_4014 | (1'h1 & 1'h1)) : (5'h9 == T_4794 ? 1'h1 : (5'h8 == T_4794 ? 1'h1 : (5'h7 == T_4794 ? 1'h1 : (5'h6 == T_4794 ? (T_4001 | 1'h1) : (5'h5 == T_4794 ? (T_3997 | 1'h1) : (5'h4 == T_4794 ? (T_3993 | 1'h1) : (5'h3 == T_4794 ? 1'h1 : (5'h2 == T_4794 ? 1'h1 : (5'h1 == T_4794 ? (T_3982 | (1'h1 & 1'h1)) : (T_3978 | 1'h1)))))))))))))))))))))))))))))))) : (5'h1f == T_4794 ? 1'h1 : (5'h1e == T_4794 ? 1'h1 : (5'h1d == T_4794 ? (T_4098 | (1'h1 & 1'h1)) : (5'h1c == T_4794 ? (T_4093 | (1'h1 & 1'h1)) : (5'h1b == T_4794 ? 1'h1 : (5'h1a == T_4794 ? 1'h1 : (5'h19 == T_4794 ? (T_4076 | (((((((1'h1 & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1)) : (5'h18 == T_4794 ? (T_4072 | 1'h1) : (5'h17 == T_4794 ? 1'h1 : (5'h16 == T_4794 ? 1'h1 : (5'h15 == T_4794 ? (T_4062 | 1'h1) : (5'h14 == T_4794 ? (T_4058 | 1'h1) : (5'h13 == T_4794 ? (T_4052 | ((1'h1 & 1'h1) & 1'h1)) : (5'h12 == T_4794 ? (T_4046 | ((1'h1 & 1'h1) & 1'h1)) : (5'h11 == T_4794 ? 1'h1 : (5'h10 == T_4794 ? (T_4036 | (((1'h1 & 1'h1) & 1'h1) & 1'h1)) : (5'hf == T_4794 ? 1'h1 : (5'he == T_4794 ? 1'h1 : (5'hd == T_4794 ? 1'h1 : (5'hc == T_4794 ? 1'h1 : (5'hb == T_4794 ? (T_4019 | (1'h1 & 1'h1)) : (5'ha == T_4794 ? (T_4014 | (1'h1 & 1'h1)) : (5'h9 == T_4794 ? 1'h1 : (5'h8 == T_4794 ? 1'h1 : (5'h7 == T_4794 ? 1'h1 : (5'h6 == T_4794 ? (T_4001 | 1'h1) : (5'h5 == T_4794 ? (T_3997 | 1'h1) : (5'h4 == T_4794 ? (T_3993 | 1'h1) : (5'h3 == T_4794 ? 1'h1 : (5'h2 == T_4794 ? 1'h1 : (5'h1 == T_4794 ? (T_3982 | (1'h1 & 1'h1)) : (T_3978 | 1'h1))))))))))))))))))))))))))))))));
+  assign T_4811 = 1'b1;
+//  assign T_4814 = T_2046 ? (5'h1f == T_4794 ? 1'h1 : (5'h1e == T_4794 ? 1'h1 : (5'h1d == T_4794 ? (T_4098 | (1'h1 & 1'h1)) : (5'h1c == T_4794 ? (T_4093 | (1'h1 & 1'h1)) : (5'h1b == T_4794 ? 1'h1 : (5'h1a == T_4794 ? 1'h1 : (5'h19 == T_4794 ? (T_4076 | (((((((1'h1 & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1)) : (5'h18 == T_4794 ? (T_4072 | 1'h1) : (5'h17 == T_4794 ? 1'h1 : (5'h16 == T_4794 ? 1'h1 : (5'h15 == T_4794 ? (T_4062 | 1'h1) : (5'h14 == T_4794 ? (T_4058 | 1'h1) : (5'h13 == T_4794 ? (T_4052 | ((1'h1 & 1'h1) & 1'h1)) : (5'h12 == T_4794 ? (T_4046 | ((1'h1 & 1'h1) & 1'h1)) : (5'h11 == T_4794 ? 1'h1 : (5'h10 == T_4794 ? (T_4036 | (((1'h1 & 1'h1) & 1'h1) & 1'h1)) : (5'hf == T_4794 ? 1'h1 : (5'he == T_4794 ? 1'h1 : (5'hd == T_4794 ? 1'h1 : (5'hc == T_4794 ? 1'h1 : (5'hb == T_4794 ? (T_4019 | (1'h1 & 1'h1)) : (5'ha == T_4794 ? (T_4014 | (1'h1 & 1'h1)) : (5'h9 == T_4794 ? 1'h1 : (5'h8 == T_4794 ? 1'h1 : (5'h7 == T_4794 ? 1'h1 : (5'h6 == T_4794 ? (T_4001 | 1'h1) : (5'h5 == T_4794 ? (T_3997 | 1'h1) : (5'h4 == T_4794 ? (T_3993 | 1'h1) : (5'h3 == T_4794 ? 1'h1 : (5'h2 == T_4794 ? 1'h1 : (5'h1 == T_4794 ? (T_3982 | (1'h1 & 1'h1)) : (T_3978 | 1'h1)))))))))))))))))))))))))))))))) : (5'h1f == T_4794 ? 1'h1 : (5'h1e == T_4794 ? 1'h1 : (5'h1d == T_4794 ? (T_4098 | (1'h1 & 1'h1)) : (5'h1c == T_4794 ? (T_4093 | (1'h1 & 1'h1)) : (5'h1b == T_4794 ? 1'h1 : (5'h1a == T_4794 ? 1'h1 : (5'h19 == T_4794 ? (T_4076 | (((((((1'h1 & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1) & 1'h1)) : (5'h18 == T_4794 ? (T_4072 | 1'h1) : (5'h17 == T_4794 ? 1'h1 : (5'h16 == T_4794 ? 1'h1 : (5'h15 == T_4794 ? (T_4062 | 1'h1) : (5'h14 == T_4794 ? (T_4058 | 1'h1) : (5'h13 == T_4794 ? (T_4052 | ((1'h1 & 1'h1) & 1'h1)) : (5'h12 == T_4794 ? (T_4046 | ((1'h1 & 1'h1) & 1'h1)) : (5'h11 == T_4794 ? 1'h1 : (5'h10 == T_4794 ? (T_4036 | (((1'h1 & 1'h1) & 1'h1) & 1'h1)) : (5'hf == T_4794 ? 1'h1 : (5'he == T_4794 ? 1'h1 : (5'hd == T_4794 ? 1'h1 : (5'hc == T_4794 ? 1'h1 : (5'hb == T_4794 ? (T_4019 | (1'h1 & 1'h1)) : (5'ha == T_4794 ? (T_4014 | (1'h1 & 1'h1)) : (5'h9 == T_4794 ? 1'h1 : (5'h8 == T_4794 ? 1'h1 : (5'h7 == T_4794 ? 1'h1 : (5'h6 == T_4794 ? (T_4001 | 1'h1) : (5'h5 == T_4794 ? (T_3997 | 1'h1) : (5'h4 == T_4794 ? (T_3993 | 1'h1) : (5'h3 == T_4794 ? 1'h1 : (5'h2 == T_4794 ? 1'h1 : (5'h1 == T_4794 ? (T_3982 | (1'h1 & 1'h1)) : (T_3978 | 1'h1))))))))))))))))))))))))))))))));
+  assign T_4814 = 1'b1;
   assign T_4816 = io_tl_r_0_a_valid & T_4811;
-  assign T_4852 = (32'h1 << T_4794) & ({({({({2'h3,({T_2245,T_2272})}),({2'h3,({T_2227,T_2218})})}),({({2'h3,({T_2281,T_2236})}),({({T_2317,T_2290}),({1'h1,T_2299})})})}),({({4'hf,({({T_2308,T_2209}),2'h3})}),({({({1'h1,T_2263}),({T_2200,T_2326})}),({2'h3,({T_2254,T_2191})})})})});
+//  assign T_4852 = (32'h1 << T_4794) & {2'h3,T_2245,T_2272,2'h3,T_2227,T_2218,2'h3,T_2281,T_2236,T_2317,T_2290,1'h1,T_2299,4'hf,T_2308,T_2209,2'h3,1'h1,T_2263,T_2200,T_2326,2'h3,T_2254,T_2191};
+  assign T_4852 = (32'h1 << T_4794);
   assign T_4897 = T_4816 & io_tl_r_0_d_ready;
   assign T_4904 = T_4897 & ~T_2046;
   assign T_4926 = T_4904 & T_4852[1];
@@ -775,22 +715,14 @@ module sirv_flash_qspi(
 
   always @(posedge clock or posedge reset) begin
   if(reset) begin
-    a_opcode <= 3'b0;
-    a_param <= 3'b0;
     a_size <= 3'b0;
     a_source <= 7'b0;
     a_address <= 30'b0;
-    a_mask <= 1'b0;
-    a_data <= 8'b0;
   end
   else if (io_tl_f_0_a_ready & io_tl_f_0_a_valid) begin
-    a_opcode <= io_tl_f_0_a_bits_opcode;
-    a_param <= io_tl_f_0_a_bits_param;
     a_size <= io_tl_f_0_a_bits_size;
     a_source <= io_tl_f_0_a_bits_source;
     a_address <= io_tl_f_0_a_bits_address;
-    a_mask <= io_tl_f_0_a_bits_mask;
-    a_data <= io_tl_f_0_a_bits_data;
   end
 
   end

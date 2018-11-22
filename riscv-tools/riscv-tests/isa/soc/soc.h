@@ -302,8 +302,20 @@
 #   0x10012040 outxor   Ouput XOR mask
 #
 # IOF Map:
+#   IO  0   1:PWM0(0)
+#   IO  1   1:PWM0(1)
+#   IO  2   1:PWM0(2)
+#   IO  3   1:PWM0(3)
+#   IO 10   1:PWM1(0)
+#   IO 11   1:PWM1(1)
+#   IO 12   1:PWM1(2)
+#   IO 13   1:PWM1(3)
 #   IO 16   0:UART0 RxD
 #   IO 17   0:UART0 TxD
+#   IO 19   1:PWM1(1)
+#   IO 20   1:PWM1(0)
+#   IO 21   1:PWM1(2)
+#   IO 22   1:PWM1(3)
 
 #define GPIO0_BASE 0x10012000
 

@@ -434,4 +434,75 @@
 #define UART_DIV_RSTV 0x0000021e
 #define UART_DIV_MASK 0x0000ffff
 
+# -----------------------------------------------
+# PWM0
+# -----------------------------------------------
+# The memory map is listed below. For complete periph IP reference
+# see "SiFive FE310-G000 Manual v2p3"
+#
+# Memory map:
+#   0x10015000 pwmcfg   PWM configuration 
+#   0x10015008 pwmcount PWM count
+#   0x10015010 pwms     PWM scaled
+#   0x10015020 pwmcmp0  PWM compare 0
+#   0x10015024 pwmcmp1  PWM compare 1
+#   0x10015028 pwmcmp2  PWM compare 2
+#   0x1001502c pwmcmp3  PWM compare 3
+
+#define PWM0_BASE 0x10015000
+
+#ifndef PWM_CMPWIDTH
+#define PWM_CMPWIDTH 8
+#endif
+
+# The reset value of IP bits is 1 as defined by the reset value of
+# other registers and the compare function.
+#define PWM_CFG_OFST 0
+#define PWM_CFG_RSTV 0xF0000000
+#define PWM_CFG_MASK 0xFF0F370F
+
+#define PWM_CNT_OFST 8
+#define PWM_CNT_RSTV 0x00000000
+#define PWM_CNT_MASK ((1 << (15+PWM_CMPWIDTH))-1)
+
+#define PWM_SCALED_OFST 16
+#define PWM_SCALED_RSTV 0x00000000
+#define PWM_SCALED_MASK 0x000000FF
+
+#define PWM_CMP0_OFST 32
+#define PWM_CMP0_RSTV 0x00000000
+#define PWM_CMP0_MASK ((1 << PWM_CMPWIDTH)-1)
+
+#define PWM_CMP1_OFST 36
+#define PWM_CMP1_RSTV 0x00000000
+#define PWM_CMP1_MASK ((1 << PWM_CMPWIDTH)-1)
+
+#define PWM_CMP2_OFST 40
+#define PWM_CMP2_RSTV 0x00000000
+#define PWM_CMP2_MASK ((1 << PWM_CMPWIDTH)-1)
+
+#define PWM_CMP3_OFST 44
+#define PWM_CMP3_RSTV 0x00000000
+#define PWM_CMP3_MASK ((1 << PWM_CMPWIDTH)-1)
+
+#define PWM_BIT_CFG_SCALE 0
+#define PWM_BIT_CFG_SCALE_HI 3
+#define PWM_BIT_CFG_STICKY 8
+#define PWM_BIT_CFG_ZEROCMP 9
+#define PWM_BIT_CFG_DEGLITCH 10
+#define PWM_BIT_CFG_ENALWAYS 12
+#define PWM_BIT_CFG_ENONESHOT 13
+#define PWM_BIT_CFG_CMP0CENTER 16
+#define PWM_BIT_CFG_CMP1CENTER 17
+#define PWM_BIT_CFG_CMP2CENTER 18
+#define PWM_BIT_CFG_CMP3CENTER 19
+#define PWM_BIT_CFG_CMP0GANG 24
+#define PWM_BIT_CFG_CMP1GANG 25
+#define PWM_BIT_CFG_CMP2GANG 26
+#define PWM_BIT_CFG_CMP3GANG 27
+#define PWM_BIT_CFG_CMP0IP 28
+#define PWM_BIT_CFG_CMP1IP 29
+#define PWM_BIT_CFG_CMP2IP 30
+#define PWM_BIT_CFG_CMP3IP 31
+
 #endif

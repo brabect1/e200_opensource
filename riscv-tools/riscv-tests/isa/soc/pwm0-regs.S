@@ -174,7 +174,6 @@ test_cfg_scale:
     srl  t3, t3, t4
     li   t4, PWM_SCALED_MASK
     and  t3, t3, t4
-    sw   t3, PWM_SCALED_OFST(t5)
     lw   t4, PWM_SCALED_OFST(t5)
     add  TESTNUM, t2, x0
     bne  t4, t3, fail  
@@ -266,6 +265,12 @@ test_cfg_scale_cmp:
     li   TESTNUM, 257
     bne  x30, x0, fail              # expect IP3-0==0 (and in fact the whole CFG==0)
 
+# TODO:
+# - see that CNT increments on ENALWAYS
+# - see that CNT increments on ENONESHOT
+# - see that CNT wraps aound and counts on when ENALWAYS
+# - see that CNT wraps around and stops at zero when ENONESHOT
+# - see that CNT resets on CMP condition when ENZERO
 
     # Test End
     TEST_PASSFAIL

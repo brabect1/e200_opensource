@@ -317,6 +317,7 @@ test_counting:
     beq  t3, x0, fail               # expect CNT!=0
 
     # Test that CNT wraps aound and counts on when ENALWAYS.
+    # (Assuming CPMx are already set to max.)
     li   t5, PWM_BASE
     li   t4, PWM_CNT_MASK           # set CNT to max
     sw   t4, PWM_CNT_OFST(t5)
@@ -325,9 +326,9 @@ test_counting:
     li   t3, ip_mask
     and  t1, t1, t3
     li   TESTNUM, 304
-    bne  t2, t4, fail              # expect CNT==max
+    bne  t2, t4, fail               # expect CNT==max
     li   TESTNUM, 305
-    bne  t1, t3, fail              # expect IP3-0==all 1s
+    bne  t1, t3, fail               # expect IP3-0==all 1s
     li   t5, PWM_BASE
     li   t4, bit_enalways_set       # enable counting by ENALWAYS
     sw   t4, PWM_CFG_OFST(t5)
@@ -343,9 +344,61 @@ test_counting:
     li   TESTNUM, 307
     bne  t1, x0, fail              # expect IP3-0==all 0s
 
-# TODO:
-# - see that CNT wraps around and stops at zero when ENONESHOT
-# - see that CNT resets on CMP condition when ENZERO
+    # Test that CNT wraps around and stops at zero when ENONESHOT. ENONESHOT
+    # shall clear on the wrap around and hence we need not to disable counting.
+    # (Assuming CPMx are already set to max.)
+    .set ip_and_enoneshot_mask,(ip_mask | bit_enoneshot_set)
+    li   t5, PWM_BASE
+    li   t4, PWM_CNT_MASK           # set CNT to max
+    sw   t4, PWM_CNT_OFST(t5)
+    lw   t2, PWM_CNT_OFST(t5)
+    lw   t1, PWM_CFG_OFST(t5)
+    li   t3, ip_mask
+    and  t1, t1, t3
+    li   TESTNUM, 308
+    bne  t2, t4, fail               # expect CNT==max
+    li   TESTNUM, 309
+    bne  t1, t3, fail               # expect IP3-0==all 1s
+    li   t5, PWM_BASE
+    li   t4, bit_enoneshot_set      # enable counting by ENALWAYS
+    sw   t4, PWM_CFG_OFST(t5)
+    li   t2, 10
+1:  addi t2,t2,-1                   # Wait loop before reading back CFG and CNT
+    bne  t2,x0,1b
+    lw   t2, PWM_CNT_OFST(t5)
+    lw   t1, PWM_CFG_OFST(t5)
+    li   t3, ip_and_enoneshot_mask  # Mask IP3-0 and ENONESHOT
+    and  t1, t1, t3
+    li   TESTNUM, 310
+    bne  t2, x0, fail               # expect CNT==0
+    li   TESTNUM, 311
+    bne  t1, x0, fail               # expect IP3-0==all 0s and ENONESHOT==0
+
+    # Test that CNT resets on CMP condition when ZEROCMP. We assume that CNT
+    # resets even when not enabled to count (neither by ENALWAYS nor by ENONESHOT).
+    # Hence by writing to CNT a value of CMPx will yield CNT=0.
+    .set bit_zerocmp_set,(1<<PWM_BIT_CFG_ZEROCMP)
+    .set bit_zerocmp_clr,0xFFFFFFFF ^ bit_zerocmp_set
+    li   t5, PWM_BASE
+    li   t4, bit_zerocmp_set
+    sw   t4, PWM_CFG_OFST(t5)
+    li   t4, 10
+    sw   t4, PWM_CMP0_OFST(t5)
+    sw   t4, PWM_CNT_OFST(t5)       # set CNT = CMP0
+    lw   t2, PWM_CNT_OFST(t5)
+    li   TESTNUM, 320
+    bne  t2, x0, fail               # expect CNT==0
+    li   t4, 11                     # set CNT > CMP0
+    sw   t4, PWM_CNT_OFST(t5)
+    lw   t2, PWM_CNT_OFST(t5)
+    li   TESTNUM, 321
+    bne  t2, x0, fail               # expect CNT==0
+    li   t4, 9                      # set CNT < CMPx
+    sw   t4, PWM_CNT_OFST(t5)
+    lw   t2, PWM_CNT_OFST(t5)
+    li   TESTNUM, 322
+    bne  t2, t4, fail               # expect CNT==last written
+
 
     # Test End
     TEST_PASSFAIL

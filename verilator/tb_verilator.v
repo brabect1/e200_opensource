@@ -18,7 +18,7 @@ Changelog:
 
   2018, Aug, Tomas Brabec
   - Modified the testbench to work with Verilator (i.e. used only synthesis
-    like syntax. This also included using the same clock for `hfextclk` and
+    like syntax). This also included using the same clock for `hfextclk` and
     `lfextclk`.
   - Commented out error injection.
   - Simple SPI flash model along with option (`BOOTROM=1`) to execute code from
@@ -33,8 +33,23 @@ Changelog:
 module tb_verilator(
 
   input wire  clk,
-  input wire  rst_n
+  input wire  rst_n,
+
+  input  logic tdi,
+  output logic tdo,
+  output logic tdo_oe,
+  input  logic tck,
+  input  logic tms,
+  input  logic trstn,
+
+  input  logic quit
   );
+
+  // finish simulation on `quit` going high
+  always @(posedge quit) begin
+      $display("Simulation indicated to quit ...");
+      $finish();
+  end
 
   `define CPU_TOP u_e203_soc_top.u_e203_subsys_top.u_e203_subsys_main.u_e203_cpu_top
   `define EXU `CPU_TOP.u_e203_cpu.u_e203_core.u_e203_exu
@@ -327,14 +342,6 @@ module tb_verilator(
       end
     end 
 
-  wire jtag_TDI = 1'b0;
-  wire jtag_TDO;
-  wire jtag_TCK = 1'b0;
-  wire jtag_TMS = 1'b0;
-  wire jtag_TRST = 1'b0;
-
-  wire jtag_DRV_TDO = 1'b0;
-
 
 wire sck;
 wire spi_cs_n;
@@ -369,11 +376,11 @@ e203_soc_top u_e203_soc_top(
    .lfextclk(clk),
    .lfxoscen(),
 
-   .io_pads_jtag_TCK_i_ival (jtag_TCK),
-   .io_pads_jtag_TMS_i_ival (jtag_TMS),
-   .io_pads_jtag_TDI_i_ival (jtag_TDI),
-   .io_pads_jtag_TDO_o_oval (jtag_TDO),
-   .io_pads_jtag_TDO_o_oe (),
+   .io_pads_jtag_TCK_i_ival (tck),
+   .io_pads_jtag_TMS_i_ival (tms),
+   .io_pads_jtag_TDI_i_ival (tdi),
+   .io_pads_jtag_TDO_o_oval (tdo),
+   .io_pads_jtag_TDO_o_oe (tdo_oe),
    .io_pads_gpio_0_i_ival   (gpio_ival[0]),
    .io_pads_gpio_0_o_oval   (gpio_oval[0]),
    .io_pads_gpio_0_o_oe     (gpio_oe  [0]),

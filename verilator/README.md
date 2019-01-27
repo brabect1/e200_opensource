@@ -75,6 +75,12 @@ into the testbench binary and hence you need to rebuild to turn it on and off.
 
     make build cflags='-DVCDTRACE=1'
 
+To disable max number of clock cycles being simulated, set the `RUN_2POW_CYCS` C++
+macro to zero. Alternatively, one may change the value to increase or decrease the
+simulation timeout.
+
+    make build cflags='-DRUN_2POW_CYCS=0'
+
 To build with Verilator prior to 3.922:
 
     make build vflags_extra='--trace +define+DISABLE_SV_ASSERTION=1'
@@ -97,6 +103,12 @@ To run a single test:
     
     # or run as a single test
     make test-rv32ui-p-xori
+
+Changing to a different test set:
+
+    # use `isa_test_dir` to point the Makefile where to look for *.verilog
+    # code dumps
+    make isa_test_dir=../riscv-tools/riscv-tests/isa/rebuild test-soc-p-uart-regs
 
 Troubleshoot
 ------------

@@ -16,11 +16,11 @@ SHELL=bash
 
 vdir = ../rtl/e203
 vsrc = tb_verilator.v spi_model.sv $(foreach d,$(wildcard $(vdir)/*),$(wildcard $(d)/*.*v*))
-csrc = sim.cpp
+csrc = rbb_server.cpp sim.cpp
 cflags =
 objdir = obj
-obj = $(csrc:%.cpp=%)
-vflags = $(if $(cflags),-CFLAGS "$(cflags)") --cc --exe --Mdir $(objdir) +incdir+$(vdir)/core +incdir+$(vdir)/perips \
+obj = sim
+vflags = -CFLAGS "-I..$(if $(cflags), $(cflags))" -LDFLAGS "-lpthread" --cc --exe --Mdir $(objdir) +incdir+$(vdir)/core +incdir+$(vdir)/perips \
 	 --top-module tb_verilator \
 	 -Wno-WIDTH -Wno-UNOPTFLAT -Wno-CASEINCOMPLETE -Wno-LITENDIAN
 vflags_extra = --trace
@@ -65,10 +65,10 @@ all build: $(objdir)/$(obj)
 .PHONY: verilate
 verilate: $(objdir)/Vtb_verilator.mk
 
-$(objdir)/Vtb_verilator.mk: $(vsrc) $(csrc)
+$(objdir)/Vtb_verilator.mk: $(vsrc)
 	verilator $(vflags) $(vflags_extra) -o $(notdir $(obj)) $(csrc) $(vsrc)
 
-$(objdir)/$(obj): $(objdir)/Vtb_verilator.mk
+$(objdir)/$(obj): $(objdir)/Vtb_verilator.mk $(csrc)
 	make -C $(objdir) -f Vtb_verilator.mk
 
 .PHONY: clean

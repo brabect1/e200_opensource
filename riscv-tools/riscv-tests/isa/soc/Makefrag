@@ -9,7 +9,8 @@ soc_sc_tests = \
 	gpio-regs \
 	rtc-regs \
 	wdog-regs \
-    pwm0-regs
+    pwm0-regs \
+    infi-loop
 
 soc_p_tests = $(addprefix soc-p-, $(soc_sc_tests))
 

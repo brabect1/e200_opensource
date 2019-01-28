@@ -47,6 +47,8 @@ static pthread_mutex_t mutex;
 
 static uint64_t simtime = 0;
 
+static int pipefd[2];
+
 double sc_time_stamp () { // Called by $time in Verilog
 	return simtime;  // converts to double, to match what SystemC does
 }
@@ -215,7 +217,7 @@ void* jtag_thrd(void* arg) {
     pthread_mutex_unlock(a->mutex);
 
     backend = new verilator_backend(a);
-    rbb = new rbb_server(backend);
+    rbb = new rbb_server(backend, pipefd[0]);
 
     rbb->listen( rbb_port );
     rbb->accept();
@@ -318,6 +320,11 @@ int main(int argc, char** argv) {
     pthread_t threads[2];
     struct th_arg targs[2];
 
+    // create a new pipe to signal towards the JTAG/RBB thread
+    if (pipe(pipefd) == -1) {
+        fprintf(stderr, "ERROR creating pipe (%d): %s\n", errno, strerror(errno));
+        abort();
+    }
 
     signal(SIGTERM, handle_sigterm);
 
@@ -359,10 +366,70 @@ int main(int argc, char** argv) {
             pthread_mutex_unlock(&mutex);
         }
     }
- 
+
+    // Now here's the funny part: Ending the simulation. The following use
+    // cases shall be considered, ordered in the decreasing likelihood:
+    //
+    // 1. No use of the OpenOCD interface and hence the JTAG/RBB thread. The
+    //    system thread will end either by timing out or on terminating the
+    //    simulation (by detecting pass/fail condition or for any other reason
+    //    in the SystemVerilog testbench). This the use case for all the ISA
+    //    and other tests.
+    //
+    // 2. Use of the OpenOCD interface and no timeout. This is the case where
+    //    want to debug the RISC-V DM/DTM mechanism (and the primary reason why
+    //    the JTAG/RBB thread has been introduced).
+    //
+    //    Here we assume the simulation will end after closing the OpenOCD
+    //    connection.
+    //
+    // 3. Use of the OpenOCD interface and terminating the simulation (from the
+    //    SystemVerilog testbench).
+    //
+    // 4. Use of the OpenOCD interface and time out after a certain number of
+    //    simulation clock cycles. This is somewhat unlikely, but still a valid
+    //    use case.
+    //
+    // Few other considerations:
+    //
+    // - The *system thread* (i.e. the one generating system clocks) will
+    //   terminate either on timeout (if not disabled) or by terminating
+    //   the simulation (i.e. calling `$finish` from the SystemVerilog
+    //   testbench).
+    //
+    //   When the system thread terminates, the JTAG/RBB thread shall terminate
+    //   (and so does the whole program). The reason is that without clock
+    //   the simulated system is unlikely to respond.
+    //
+    // - When we intend to use OpenOCD, we assume the system thread runs
+    //   without a timeout (and also that the usual mechanism of terminating
+    //   the SystemVerilog testbench for ISA tests would not trigger). Hence
+    //   the event to terminate the simulation/program will come from the
+    //   JTAG/RBB thread.
+    //
+    // Synchronization mechanism: One can think of many ways, but since both
+    // threads are supposed to check (at some point) if the SystemVerilog
+    // testbench had finished. Since we built in the `quit` signal into the
+    // testbench and a process that will call `$finish` after seeing it in 1,
+    // we get a synchronization means for free.
+    //
+    // The problem that remains is that the JTAG/RBB server may block either
+    // on `accept()` or `read()`. The assumption is that this happens either
+    // in case 1 (no use of OpenOCD interface), or in cases 3 and 4 (the
+    // system thread ends before the JTAG/RBB one).
+    //
+    // It then seems correct to wait/join the system thread and the "trip"
+    // the JTAG/RBB thread if not already ended.
     for(int i = 0 ; i < 2; ++i) {
         void* status;
-        int t = pthread_join(threads[i], &status);
+        int t;
+
+        // make sure to signal the end to the JTAG/RBB thread
+        if (i == 1) {
+            write(pipefd[1], "q", 1);
+        }
+
+        t = pthread_join(threads[i], &status);
         if (t != 0) {
             pthread_mutex_lock(&mutex);
             cout << "Error in thread join: " << t << endl;

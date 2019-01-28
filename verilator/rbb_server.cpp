@@ -25,13 +25,15 @@ limitations under the License.
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
+#include <sys/epoll.h>
 
 #include "rbb_server.h"
 
 
-rbb_server::rbb_server(rbb_backend* backend):
+rbb_server::rbb_server(rbb_backend* backend, int pipefd):
   sockfd(0),
   clientfd(0),
+  pipefd(pipefd),
   backend(NULL)
 {
     if (backend != NULL && backend->setServer(this) == 0) {
@@ -110,14 +112,49 @@ void rbb_server::listen(uint16_t port) {
 void rbb_server::accept() {
     struct sockaddr_in clientaddr;
     if (clientfd == 0 && sockfd != 0) {
-        socklen_t clilen = sizeof(clientaddr);
-        clientfd = ::accept(sockfd, (struct sockaddr*)&clientaddr, &clilen);
-        if (clientfd < 0) {
-            fprintf(stderr, "ERROR accepting client connection (%d): %s\n", errno, strerror(errno));
-            close(sockfd);
-            sockfd = 0;
-            clientfd = 0;
+        //TODO: 1st attempt to use epoll example from http://man7.org/linux/man-pages/man7/epoll.7.html
+        struct epoll_event ev, events[2];
+        int nfds, epollfd;
+
+        epollfd = epoll_create1(EPOLL_CLOEXEC);
+        if (epollfd == -1) {
+            perror("epoll_create1");
             abort();
+        }
+
+        ev.events = EPOLLIN;
+        ev.data.fd = sockfd;
+        if (epoll_ctl(epollfd, EPOLL_CTL_ADD, sockfd, &ev) == -1) {
+            perror("epoll_ctl: sockfd");
+            abort();
+        }
+
+        ev.events = EPOLLIN;
+        ev.data.fd = pipefd;
+        if (epoll_ctl(epollfd, EPOLL_CTL_ADD, pipefd, &ev) == -1) {
+            perror("epoll_ctl: pipefd");
+            abort();
+        }
+
+        nfds = epoll_wait(epollfd, events, 2, -1);
+        if (nfds == -1) {
+            perror("epoll_wait");
+            abort();
+        }
+        for (int n = 0; n < nfds; ++n) {
+            if (events[n].data.fd == sockfd) {
+                socklen_t clilen = sizeof(clientaddr);
+                clientfd = ::accept(sockfd, (struct sockaddr*)&clientaddr, &clilen);
+                if (clientfd < 0) {
+                    fprintf(stderr, "ERROR accepting client connection (%d): %s\n", errno, strerror(errno));
+                    close(sockfd);
+                    sockfd = 0;
+                    clientfd = 0;
+                    abort();
+                }
+            } else {
+                finish();
+            }
         }
     }
 }

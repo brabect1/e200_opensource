@@ -93,7 +93,7 @@ class rbb_server {
         /**
         * Creates a new server with a given back-end.
         */
-        rbb_server(rbb_backend* backend);
+        rbb_server(rbb_backend* backend, int pipefd);
 
         /**
         * Opens a socket for connections on the given port of localhost.
@@ -132,8 +132,21 @@ class rbb_server {
 
         rbb_backend* backend;
 
+        /**
+        * Socket file descriptor where the server listens for new connections.
+        */
         int sockfd;
+
+        /**
+        * Socket file descriptor of an accepted client connection. This server
+        * supports a single client on the "first come first serve" basis.
+        */
         int clientfd;
+
+        /**
+        * Pipe read file descriptor that is used to signal the server to quit.
+        */
+        int pipefd;
 
 };
 

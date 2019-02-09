@@ -16,6 +16,8 @@ limitations under the License.
 
 #include "rbb_server.h"
 #include <iostream>
+#include <vector>
+#include <algorithm>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -32,13 +34,6 @@ limitations under the License.
 #endif
 
 
-// This value controls how many `clk` cycles will the C++ wrapper generate
-// before giving up the simulation. It is defined as a macro to let users
-// change the default for some longer simulations wihtout a need to edit
-// the wrapper.
-#ifndef RUN_2POW_CYCS
-#define RUN_2POW_CYCS 17
-#endif
 
 
 using namespace std;
@@ -53,12 +48,60 @@ double sc_time_stamp () { // Called by $time in Verilog
 	return simtime;  // converts to double, to match what SystemC does
 }
 
+/**
+* Aggregates information passed from the main application thread to the
+* system and JTAG threads.
+*/
 struct th_arg {
+    // Thread ID.
     int id;
+
+    // Reference to a mutex shared by the threads.
     pthread_mutex_t* mutex;
+
+    // Reference to a Verilator testbench class. Needs to be guarded by the mutex.
     Vtb_verilator* top;
+
+    // Reference to a Verilator tracer class. Needs to be guarded by the mutex.
     VerilatedVcdC* tfp;
+
+    // Simulation time. Needs to be guarded by the mutex.
     uint64_t* simtime;
+
+    // This value controls how many `clk` cycles will the C++ wrapper generate
+    // before giving up the simulation. It is defined as a macro to let users
+    // change the default for some longer simulations wihtout a need to edit
+    // the wrapper.
+    int max_cycs_pow;
+};
+
+
+/**
+* Implements a command line options parser.
+* Code origin: https://stackoverflow.com/questions/865668/how-to-parse-command-line-arguments-in-c
+*/
+class OptionsParser{
+    public:
+        OptionsParser (int &argc, char **argv){
+            for (int i=1; i < argc; ++i)
+                this->tokens.push_back(std::string(argv[i]));
+        }
+        /// @author iain
+        std::string getCmdOption(const std::string &option) const{
+            std::vector<std::string>::const_iterator itr;
+            itr =  std::find(this->tokens.begin(), this->tokens.end(), option);
+            if (itr != this->tokens.end() && ++itr != this->tokens.end()){
+                return std::string(*itr);
+            }
+            return std::string("");
+        }
+        /// @author iain
+        bool cmdOptionExists(const std::string &option) const{
+            return std::find(this->tokens.begin(), this->tokens.end(), option)
+                != this->tokens.end();
+        }
+    private:
+        std::vector <std::string> tokens;
 };
 
 
@@ -105,7 +148,7 @@ class verilator_backend: public rbb_backend {
                     arg->top->trstn = 1;
                     arg->top->quit = 0;
                     arg->top->eval();
-#if VM_TRACE && VCDTRACE
+#if VM_TRACE
 	                if (arg->tfp != NULL) arg->tfp->dump(*simtime);
 #endif
                     (*simtime)++;
@@ -129,7 +172,7 @@ class verilator_backend: public rbb_backend {
                     arg->top->eval();
                     arg->top->trstn = 1;
                     arg->top->eval();
-#if VM_TRACE && VCDTRACE
+#if VM_TRACE
 	                if (arg->tfp != NULL) arg->tfp->dump(*simtime);
 #endif
                     (*simtime)++;
@@ -146,7 +189,7 @@ class verilator_backend: public rbb_backend {
                 if (arg->top != NULL && !Verilated::gotFinish()) {
                     arg->top->quit = 1;
                     arg->top->eval();
-#if VM_TRACE && VCDTRACE
+#if VM_TRACE
 	                if (arg->tfp != NULL) arg->tfp->dump(*simtime);
 #endif
                     (*simtime)++;
@@ -172,7 +215,7 @@ class verilator_backend: public rbb_backend {
                     arg->top->tms = tms;
                     arg->top->tdi = tdi;
                     arg->top->eval();
-#if VM_TRACE && VCDTRACE
+#if VM_TRACE
 	                if (arg->tfp != NULL) arg->tfp->dump(*simtime);
 #endif
                     (*simtime)++;
@@ -243,21 +286,21 @@ void* sys_thrd(void* arg) {
     uint64_t cnt = 0;
 
     pthread_mutex_lock(a->mutex);
-    cerr << "id " << a->id << ": System clock started (" << (RUN_2POW_CYCS > 0 ? "timeout ":"no timeout");
-    if (RUN_2POW_CYCS > 0) cerr << (1<<RUN_2POW_CYCS) << " clocks";
+    cerr << "id " << a->id << ": System clock started (" << (a->max_cycs_pow > 0 ? "timeout ":"no timeout");
+    if (a->max_cycs_pow > 0) cerr << (1 << a->max_cycs_pow) << " clocks";
     cerr << ") ..." << endl;
     if (!Verilated::gotFinish()) {
         a->top->rst_n = 0;
         for (int i=0; i < 10; i++) {
             a->top->clk = 1;
             a->top->eval();
-#if VM_TRACE && VCDTRACE
+#if VM_TRACE
 	        if (a->tfp != NULL) a->tfp->dump(*simtime);
 #endif
             (*simtime)++;
             a->top->clk = 0;
             a->top->eval();
-#if VM_TRACE && VCDTRACE
+#if VM_TRACE
 	        if (a->tfp != NULL) a->tfp->dump(*simtime);
 #endif
             (*simtime)++;
@@ -272,18 +315,18 @@ void* sys_thrd(void* arg) {
         if (!Verilated::gotFinish()) {
             a->top->clk = 1;
             a->top->eval();
-#if VM_TRACE && VCDTRACE
+#if VM_TRACE
 	        if (a->tfp != NULL) a->tfp->dump(*simtime);
 #endif
             (*simtime)++;
             a->top->clk = 0;
             a->top->eval();
-#if VM_TRACE && VCDTRACE
+#if VM_TRACE
 	        if (a->tfp != NULL) a->tfp->dump(*simtime);
 #endif
             (*simtime)++;
 
-            if (RUN_2POW_CYCS > 0 && (cnt > (1 << RUN_2POW_CYCS))) {
+            if (a->max_cycs_pow > 0 && (cnt > (1 << a->max_cycs_pow))) {
                 a->top->quit = 1;
                 a->top->eval();
                 done = 1;
@@ -313,12 +356,38 @@ void handle_sigterm(int sig) {
 }
 
 
+/**
+* Implements the simulation wrapper. Its purpose is to parse input arguments,
+* instantiate the Verilator testbench, and start the threads. The system thread
+* will take care of system clocking and reset, the JTAG thread runs the RBB
+* server that stimulates the testbench's JTAG interface and provides an interface
+* to OpenOCD.
+*/
 int main(int argc, char** argv) {
-	Verilated::commandArgs(argc, argv);
-	Vtb_verilator* top = new Vtb_verilator;
+    OptionsParser* arg_parser = new OptionsParser(argc, argv);
+    int debug = 0;
+    int cycs_pow = 17;
+    std::string dump_path;
 
-    pthread_t threads[2];
-    struct th_arg targs[2];
+    if (arg_parser->cmdOptionExists("-h") || arg_parser->cmdOptionExists("--help")) {
+        cerr << "Options:" << endl;
+        cerr << "\t-h, --help    Prints this help message." << endl;
+        cerr << "\t-d <path>     Generate VCD dump file. Default is no dump." << endl;
+        cerr << "\t-c <num>      Stop simulation after 2**<num> cycles. Negative numbers" << endl;
+        cerr << "\t              run until Verilog $finish. Default is 17." << endl;
+        delete arg_parser;
+        return 0;
+    }
+
+    if (arg_parser->cmdOptionExists("-d")) {
+        dump_path = arg_parser->getCmdOption("-d");
+        if (!dump_path.empty()) debug=1;
+    }
+
+    delete arg_parser;
+    cerr << "debug=" << debug << endl;
+    cerr << "dump=" << dump_path << endl;
+    cerr << "cycs=" << cycs_pow << endl;
 
     // create a new pipe to signal towards the JTAG/RBB thread
     if (pipe(pipefd) == -1) {
@@ -328,13 +397,20 @@ int main(int argc, char** argv) {
 
     signal(SIGTERM, handle_sigterm);
 
+    Verilated::commandArgs(argc, argv);
+    Vtb_verilator* top = new Vtb_verilator;
+    VerilatedVcdC* tfp = NULL;
+
+    pthread_t threads[2];
+    struct th_arg targs[2];
+
 #if VM_TRACE
-	Verilated::traceEverOn(true);
-    VerilatedVcdC* tfp = new VerilatedVcdC;
-#if VCDTRACE
-	top->trace (tfp, 99);
-    tfp->open ("dump.vcd");
-#endif
+    if (debug) {
+	    Verilated::traceEverOn(true);
+        tfp = new VerilatedVcdC;
+	    top->trace (tfp, 99);
+        tfp->open (dump_path.c_str());
+    }
 #endif
 
     pthread_mutex_lock(&mutex);
@@ -346,6 +422,7 @@ int main(int argc, char** argv) {
         targs[i].id = i;
         targs[i].mutex = &mutex;
         targs[i].top = top;
+        targs[i].max_cycs_pow = cycs_pow;
 #if VM_TRACE
         targs[i].tfp = tfp;
 #else
@@ -443,10 +520,10 @@ int main(int argc, char** argv) {
 
 	delete top;
 #if VM_TRACE
-#if VCDTRACE
-	tfp->close();
-#endif
-	delete tfp;
-#endif
+    if (tfp != NULL) {
+	    tfp->close();
+	    delete tfp;
+    }
+#endif    
     return 0;
 }

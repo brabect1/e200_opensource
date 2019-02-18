@@ -365,29 +365,49 @@ void handle_sigterm(int sig) {
 */
 int main(int argc, char** argv) {
     OptionsParser* arg_parser = new OptionsParser(argc, argv);
-    int debug = 0;
     int cycs_pow = 17;
+    int dump_on = 0;
     std::string dump_path;
 
+    // help option
     if (arg_parser->cmdOptionExists("-h") || arg_parser->cmdOptionExists("--help")) {
         cerr << "Options:" << endl;
         cerr << "\t-h, --help    Prints this help message." << endl;
         cerr << "\t-d <path>     Generate VCD dump file. Default is no dump." << endl;
-        cerr << "\t-c <num>      Stop simulation after 2**<num> cycles. Negative numbers" << endl;
+        cerr << "\t-c <num>      Stop simulation after 2**<num> cycles. Non-positive numbers" << endl;
         cerr << "\t              run until Verilog $finish. Default is 17." << endl;
         delete arg_parser;
         return 0;
     }
 
+    // dump option
     if (arg_parser->cmdOptionExists("-d")) {
         dump_path = arg_parser->getCmdOption("-d");
-        if (!dump_path.empty()) debug=1;
+        if (!dump_path.empty()) {
+            dump_on=1;
+            cerr << "**Info: VCD dump turned on (file: " << dump_path << ")." << endl;
+        }
+    }
+
+    // cycles/timeout option
+    if (arg_parser->cmdOptionExists("-c")) {
+        std::string s = arg_parser->getCmdOption("-c");
+        if (!s.empty()) {
+            try {
+                cycs_pow = std::stoi(s);
+                if (cycs_pow > 0) cerr << "**Info: Timeout set to " << (1<<cycs_pow) << "." << endl;
+                else cerr << "**Info: Set no timeout!" << endl;
+            } catch (std::invalid_argument e) {
+                cerr << "**WARNING: Invalid argument to -c option!" << endl;
+            } catch (std::out_of_range e) {
+                cerr << "**WARNING: Out of range argument to -c option!" << endl;
+            }
+        } else {
+            cerr << "**WARNING: No argument passed to -c option! Using default ..." << endl;
+        }
     }
 
     delete arg_parser;
-    cerr << "debug=" << debug << endl;
-    cerr << "dump=" << dump_path << endl;
-    cerr << "cycs=" << cycs_pow << endl;
 
     // create a new pipe to signal towards the JTAG/RBB thread
     if (pipe(pipefd) == -1) {
@@ -405,7 +425,7 @@ int main(int argc, char** argv) {
     struct th_arg targs[2];
 
 #if VM_TRACE
-    if (debug) {
+    if (dump_on) {
 	    Verilated::traceEverOn(true);
         tfp = new VerilatedVcdC;
 	    top->trace (tfp, 99);

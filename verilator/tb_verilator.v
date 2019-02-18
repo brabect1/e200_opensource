@@ -266,13 +266,13 @@ module tb_verilator(
     end
   end
 
-  // watchdog
-  always @(posedge clk) begin
-    if (cycle_count[20] == 1'b1) begin
-      $error("Time Out !!!");
-      $finish;
-    end
-  end
+//TODO  // watchdog
+//TODO  always @(posedge clk) begin
+//TODO    if (cycle_count[20] == 1'b1) begin
+//TODO      $error("Time Out !!!");
+//TODO      $finish;
+//TODO    end
+//TODO  end
 
 
 
